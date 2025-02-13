@@ -1,0 +1,9 @@
+together 
+matplotlib
+tavily-python
+lxml_html_clean
+selenium==4.28.0
+readability-lxml
+waitress
+bs4
+flask

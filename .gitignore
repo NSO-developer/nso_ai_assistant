@@ -1,0 +1,6 @@
+*.pyc
+lib/__pycache__/*
+logs/*.log
+start_local.sh
+start_ollama_local.sh
+*.log

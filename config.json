@@ -1,0 +1,7 @@
+{
+    "deploy_mode": "remote",
+    "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
+    "together_mode":"api",
+    "com_int":"webex",
+    "bot_email_prefix":"cisco.com"
+}
