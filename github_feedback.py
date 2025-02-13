@@ -24,6 +24,8 @@ def creat_issue(query,answer,cec):
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     url_msg=urllib.parse.quote_plus(query)
     url_response=urllib.parse.quote_plus(answer)
+    config=load_config()
+    url_repo=config['github_repo_url']
     msg={ 
     "type": "AdaptiveCard",
     "body": [
@@ -67,7 +69,7 @@ def creat_issue(query,answer,cec):
                         },
                         {
                             "type": "TextBlock",
-                            "text": f"[Let me Know on Github](https://github.com/NSO-developer/nso_ai_assistant/issues/new?title=Inaccurate%20Answer%20from%20AI&body=**Question**%0A{url_msg}%0A%0A**Answer%20from%20AI**%0A{url_response}%0A%0A**Expected%20Answer(Optional)**%0A{comment}.&labels[]=bug) ",
+                            "text": f"[Let me Know on Github]({url_repo}/issues/new?title=Inaccurate%20Answer%20from%20AI&body=**Question**%0A{url_msg}%0A%0A**Answer%20from%20AI**%0A{url_response}%0A%0A**Expected%20Answer(Optional)**%0A{comment}.&labels[]=bug) ",
                             "horizontalAlignment": "Left",
                             "size": "Small"
                         }

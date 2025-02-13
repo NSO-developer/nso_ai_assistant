@@ -40,11 +40,11 @@ You can choose the deployment method between online deployment with together.ai 
     "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
     "together_mode":"api",
     "com_int":"webex",
-    "bot_email_prefix":"cisco.com"
-
+    "bot_email_prefix":"cisco.com",
+    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant"
 }
 ```
-deploy_mode can be "remote" or "local". "remote" is remote deployment with together.ai while "local" is offline deployment with ollama. At the same time "model_name" is the AI model you are decide to use locally or remote from together.ai. The "together_mode" is the mode of the API which can be "legacy" API request through "requets" via HTTPs  - "legacy" or throuhg together Python API - "api". This option is not used when "deploy_mode" is set to "local". Than the parameter "com_int" is the communication interface setting. It can set to "webex" that makes the AI act as a webex bot or interact with CLI interface locally. Eventually, the "bot_email_prefix" parameter limit which email address prefix will the bot answer to. This can help orgnization limit the coverage of the bot. 
+deploy_mode can be "remote" or "local". "remote" is remote deployment with together.ai while "local" is offline deployment with ollama. At the same time "model_name" is the AI model you are decide to use locally or remote from together.ai. The "together_mode" is the mode of the API which can be "legacy" API request through "requets" via HTTPs  - "legacy" or throuhg together Python API - "api". This option is not used when "deploy_mode" is set to "local". Than the parameter "com_int" is the communication interface setting. It can set to "webex" that makes the AI act as a webex bot or interact with CLI interface locally. Eventually, the "bot_email_prefix" parameter limit which email address prefix will the bot answer to. This can help orgnization limit the coverage of the bot. The repository also support gitback issue creting feature to collect feedback from the user. To specify which repository you want to open issue on, configure the repository url under "github_repo_url". 
 
 The example above is the llama 3.3 model with 70B Free library from together.ai while the one below is a example of using local model with llama3.1 8B library. At the same time, only answer query from whoever own a cisco.com email address. 
 
@@ -55,9 +55,8 @@ The example above is the llama 3.3 model with 70B Free library from together.ai 
     "model_name":"llama3.1:8b",
     "together_mode":"api",
     "com_int":"cli",
-    "bot_email_prefix":"cisco.com"
-
-
+    "bot_email_prefix":"cisco.com",
+    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant"
 }
 ```
 
@@ -249,6 +248,20 @@ ANYTHINGLLM_API_TOKEN obtained from AnythingLLM Config - Tools - Developer API -
 * Start the bot with the following command
 ```
 sh start_ollama.sh --cli
+```
+
+## Feedback Feature
+The repository also have the feature of collecting feedback in Github as an issues. By default this is set towards the NSO-developer repository - "https://github.com/NSO-developer/nso_ai_assistant". When creating the issue, the issue description will be pre-populated with the following content. This can make the issue open easier. 
+```
+**Question**
+{Question Asked}
+
+**Answer from AI**
+{Anser Got}
+
+**Expected Answer(Optional)**
+What do you want to see and how should it be improved.
+
 ```
 
 
