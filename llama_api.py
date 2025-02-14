@@ -47,7 +47,7 @@ model_name=config['model_name']
 def tavily(msg): 
   response = tavily_client.search(
       query=msg,
-      include_domains=["https://cisco-tailf.gitbook.io/nso-docs"]
+      include_domains=["https://cisco-tailf.gitbook.io/nso-docs","*.cisco.com", "https://datatracker.ietf.org"]
   )
   if len(response["results"]) > 0:
     text="source: "+response["results"][0]["url"]+"\nresult: "+response["results"][0]["content"]
