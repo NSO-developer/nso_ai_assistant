@@ -71,13 +71,13 @@ def recv():
                 logger.info("NSO Specific Pipeline")
                 llama_response=main(message,cec_in=cec)
                 logger.info("Sending request! - "+str(llama_response))
-                #send(llama_response,cec)
+                send(llama_response,cec)
                 creat_issue(message,llama_response,cec)
             elif  mode == "general":
                 logger.info("General Pipeline from AnythingLLM")
                 llama_response=ollama_main(message,cec_in=cec)
                 logger.info("Sending request! - "+str(llama_response))
-                #send(llama_response,cec)
+                send(llama_response,cec)
                 creat_issue(message,llama_response,cec)
             else:
                 print("Internal Error")

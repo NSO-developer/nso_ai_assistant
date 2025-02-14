@@ -26,35 +26,9 @@ def creat_issue(query,answer,cec):
     url_response=urllib.parse.quote_plus(answer)
     config=load_config()
     url_repo=config['github_repo_url']
-    msg={ 
+    msg=        {
     "type": "AdaptiveCard",
     "body": [
-        {
-            "type": "TextBlock",
-            "weight": "Bolder",
-            "text": f"Answer to '{query}'",
-            "horizontalAlignment": "Left",
-            "wrap": True,
-            "color": "Light",
-            "size": "Large",
-            "spacing": "Small"
-        },
-        {
-            "type": "ColumnSet",
-            "columns": [
-                {
-                    "type": "Column",
-                    "width": "stretch",
-                    "items": [
-                        {
-                            "type": "TextBlock",
-                            "text": f"{answer}",
-                            "wrap": True
-                        }
-                    ]
-                }
-            ]
-        },
         {
             "type": "ColumnSet",
             "columns": [
@@ -83,7 +57,7 @@ def creat_issue(query,answer,cec):
     ],
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "version": "1.3"
-    }
+}
 
     send_attach("test",msg,cec)
 
