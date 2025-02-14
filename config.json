@@ -3,5 +3,6 @@
     "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
     "together_mode":"api",
     "com_int":"webex",
-    "bot_email_prefix":"cisco.com"
+    "bot_email_prefix":"cisco.com",
+    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant"
 }
