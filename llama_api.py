@@ -10,9 +10,6 @@ tavily_client = TavilyClient(api_key=os.environ['TAVILY_API_KEY'])
 config=None
 
 
-
-
-
 def load_config():
   with open('config.json', 'r') as file:
       data = json.load(file)

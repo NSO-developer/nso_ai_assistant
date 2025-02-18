@@ -210,7 +210,7 @@ def main(msg,cec_in=""):
     if len(cec_in) == 0:
       print(finish_text)
     else:
-      return response + f'\nAverage execution time: {end - start}'
+      return response + f'\n\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
     if config["get_content_type"] == "langchain_rag":
