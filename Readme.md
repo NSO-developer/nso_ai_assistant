@@ -253,16 +253,17 @@ ANYTHINGLLM_API_TOKEN obtained from AnythingLLM Config - Tools - Developer API -
 sh start_ollama.sh --cli
 ```
 
+
 ## Feedback Feature
 The repository also have the feature of collecting feedback in Github as an issues. By default this is set towards the NSO-developer repository - "https://github.com/NSO-developer/nso_ai_assistant". When creating the issue, the issue description will be pre-populated with the following content. This can make the issue open easier. 
 ```
-**Question**
+Question
 {Question Asked}
 
-**Answer from AI**
+Answer from AI
 {Anser Got}
 
-**Expected Answer(Optional)**
+Expected Answer(Optional)
 What do you want to see and how should it be improved.
 
 ```
