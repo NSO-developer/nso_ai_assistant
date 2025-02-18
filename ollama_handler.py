@@ -29,9 +29,9 @@ anythingllm_url=f'http://{ip}:{port}/api/v1/workspace/{workspace}/chat'
 
 def handler(msg,cec_in=""):
   sessionId=uuid.uuid4().hex
-  logging.info("AI creating answer based on context")
+  logger.info("AI creating answer based on context")
   stream=ollama32(msg,sessionId)
-  logging.info("AI creating answer based on context Done")
+  logger.info("AI creating answer based on context Done")
   response=get_data(stream)
   out=print_data(response,cec_in)
   return out

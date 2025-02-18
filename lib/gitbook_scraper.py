@@ -11,10 +11,33 @@ from selenium.webdriver.chrome.service import Service
 import re
 from readability import Document
 import threading
+import json
+import logging
+from .langchain_loader import *
 
 
 chrome_options = Options()
 chrome_options.add_argument("--headless=new") # for Chrome >= 109
+
+
+# Create and configure logger
+logging.basicConfig(filename="logs/gitbook_scraper.log",
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+
+# Creating an object
+logger = logging.getLogger()
+
+# Setting the threshold of logger to DEBUG
+logger.setLevel(logging.INFO)
+
+def load_config():
+  with open('config.json', 'r') as file:
+      data = json.load(file)
+  return data
+
+config=load_config()
+
 
 def get_html(query):
     #print(query)
@@ -209,9 +232,6 @@ def get_content(url_list,dataset,top_result=2):
     cache=None
 
     for (data,skip) in dataset:
-        #print("data: "+data)
-        #print("skip: "+str(skip))
-
         if skip != None:
             if ("ncs.conf" or "ncs-config" in data)  and not skip:
                 #print(data)
@@ -248,30 +268,45 @@ def get_content(url_list,dataset,top_result=2):
     #print(out)
     return out
 
-def search(query,top_result=2):
+def search(query,msg,top_result=2):
     query=query.lower()
-    dataset_conf=[]
     #print(query)
-    if "upgrade" in query and "nso" not in query:
-        query="nso "+query
-    elif ("northbound" in query or "ncs.conf" in  query):
-        r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
-        if r.status_code <200 and r.status_code >300:
-            raise requests.exceptions.HTTPError
-        else:
-            cache=r.content  
-        conf_ph=query.replace("northbound","")   
-        conf_ph=conf_ph.replace("ncs.conf","")   
-        conf_ph=conf_ph.replace("config","")  
-        conf_ph=conf_ph.replace("configuration","")
-        conf_ph=conf_ph.replace("set","")
-        conf_ph=conf_ph.replace("\"","")
-        #print("northbound searching sequence - "+conf_ph)
-        #print("conf_ph:"+ conf_ph)
-        get_conf_context(conf_ph,cache,dataset_conf,"bypass")
+
+
     #print("dataset_conf: "+str(dataset_conf))
-    url_list=get_url(query)
-    content=get_content(url_list,dataset_conf,top_result)
+
+    if config["get_content_type"] == "gitbook_search":
+        dataset_conf=[]
+        if "upgrade" in query and "nso" not in query:
+            query="nso "+query
+        elif ("northbound" in query or "ncs.conf" in  query):
+            r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
+            if r.status_code <200 and r.status_code >300:
+                raise requests.exceptions.HTTPError
+            else:
+                cache=r.content  
+            conf_ph=query.replace("northbound","")   
+            conf_ph=conf_ph.replace("ncs.conf","")   
+            conf_ph=conf_ph.replace("config","")  
+            conf_ph=conf_ph.replace("configuration","")
+            conf_ph=conf_ph.replace("set","")
+            conf_ph=conf_ph.replace("\"","")
+            #print("northbound searching sequence - "+conf_ph)
+            #print("conf_ph:"+ conf_ph)
+            get_conf_context(conf_ph,cache,dataset_conf,"bypass")
+
+        url_list=get_url(query)
+        content=get_content(url_list,dataset_conf,top_result)
+    elif config["get_content_type"] == "langchain_rag":
+        #urls=[]
+        #for url,_mode in url_list:
+        #    urls.append(url.split("#")[-2])
+        #unique_urls = list(set(urls))
+        #print("unique_urls: "+str(unique_urls))
+        content=query_vdb(query,top_result=2)
+        #content=langchain_query(unique_urls,msg,top_result)
+    else:
+        logger.error("Wrong get_content_type")
     #print("dataset_conf after: "+str(dataset_conf))
     #print("content after: "+str(content))
     return content

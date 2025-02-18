@@ -1,5 +1,12 @@
 # NSO Gitbook AI Bot
-This project benifit the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. Therefore I created this repository to provide more accurate AI searching engine/bot to answer quick question from NSO Customer and Developer side. We also provide a more general approach with AnytingLLM as RAG for user to compare with our version of appraoch in thie repository. We call it alternative approach in this readme guide.
+This project explore 2 approach to build a AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://cisco-tailf.gitbook.io/nso-docs/. The first approach rely on the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. While the second way is with Langchain to construct a tailed RAG that have the following goal
+* Vector Datastore need to tailed to NSO Gitbook Guide with one chapter per chunk
+* When query, enough support is provided to retrive from the Vector Datastore
+* Data must be cleaned and easy to understand by the LLM
+
+Therefore I created this repository to provide more accurate AI searching engine/bot to answer quick question from NSO Customer and Developer side. 
+
+To compare our design with more general approach like AnythingLLM, we also provide testcode to interact with AnythingLLM as RAG and retrive answer. We call it alternative approach in this readme guide.
 
 <img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png" alt="NSO AI Pipeline Design" width="800" height="600">
 
@@ -8,12 +15,14 @@ This project benifit the Gitbook Search of the NSO Gitbook Guide and build a RAG
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API. 
 
 ## Pre-requisition
-* Model Requirment: 
+* Chat Model Requirment: 
     * llama3.3 70B(Recommend) llama3.1 7B(Entry Requirment but with slow reply speed and instability answer)  
         * llama3.3 70B use together.ai - meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
         * llama3.1 7B offline model with ollama and AnythingLLM
     * Deepseek is not supported since it complicated task some time. 
-* Hardware Requirment on AI Model Server
+* Embedded Model Requirment
+    * By default, the repository is built and tested with "sentence-transformers/all-mpnet-base-v2". We also recommend to use this one from Huggingface
+* Hardware Requirment on AI Model Server(if deploy localy)
     * llama3.3 70B - Min 64gb RAM + RTX 4090. Recommend 128gb RAM + RTX4090 * 2
     * llama3.1 7B - Min 64gb RAM + RTX3070. Recommend 128gb RAM + RTX3070
     The lack of physical RAM can be compensate by GPU vRAM. Lacking of memory will triger OOM and cause AI model reply empty content. 
@@ -38,26 +47,20 @@ You can choose the deployment method between online deployment with together.ai 
 {
     "deploy_mode": "remote",
     "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
-    "together_mode":"api",
-    "com_int":"webex",
-    "bot_email_prefix":"cisco.com",
-    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant"
-}
-```
-deploy_mode can be "remote" or "local". "remote" is remote deployment with together.ai while "local" is offline deployment with ollama. At the same time "model_name" is the AI model you are decide to use locally or remote from together.ai. The "together_mode" is the mode of the API which can be "legacy" API request through "requets" via HTTPs  - "legacy" or throuhg together Python API - "api". This option is not used when "deploy_mode" is set to "local". Than the parameter "com_int" is the communication interface setting. It can set to "webex" that makes the AI act as a webex bot or interact with CLI interface locally. Eventually, the "bot_email_prefix" parameter limit which email address prefix will the bot answer to. This can help orgnization limit the coverage of the bot. The repository also support gitback issue creting feature to collect feedback from the user. To specify which repository you want to open issue on, configure the repository url under "github_repo_url". 
-
-The example above is the llama 3.3 model with 70B Free library from together.ai while the one below is a example of using local model with llama3.1 8B library. At the same time, only answer query from whoever own a cisco.com email address. 
-
-
-```
-{
-    "deploy_mode": "local",
-    "model_name":"llama3.1:8b",
+    "embedding_model":"sentence-transformers/all-mpnet-base-v2",
     "together_mode":"api",
     "com_int":"cli",
     "bot_email_prefix":"cisco.com",
-    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant"
+    "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
+    "doc_keepalive": 14,
+    "get_content_type":"langchain_rag"
 }
+```
+deploy_mode can be "remote" or "local". "remote" is remote deployment with together.ai while "local" is offline deployment with ollama. At the same time "model_name" is the AI model you are decide to use locally or remote from together.ai. The "together_mode" is the mode of the API which can be "legacy" API request through "requets" via HTTPs  - "legacy" or throuhg together Python API - "api". This option is not used when "deploy_mode" is set to "local". Than the parameter "com_int" is the communication interface setting. It can set to "webex" that makes the AI act as a webex bot or interact with CLI interface locally. Eventually, the "bot_email_prefix" parameter limit which email address prefix will the bot answer to. This can help orgnization limit the coverage of the bot.  
+The repository also support Github issue creting feature to collect feedback from the user. To specify which repository you want to open issue on, configure the repository url under "github_repo_url".  
+For data knowledge base, the repository support two mode that configured in "get_content_type". "gitbook_search" mode rely on Gitbook search to obtain informtion. At the same time, "langchain_rag" pull all the information from the Gitbook first and construct a Vector Datastore, than search inside this Vector Datastore with specific keyword that extract from the question. This Vector Datstore is tailed for NSO Gitbook Guide to make sure the search maintain high efficiency. Embedder that used in the langchain is specified in "embedding_model" and this embedder reside on Huggingface when the "deploy_mode" is remote. When the "deploy_mode" is local, embedder is used from Ollama server locally.
+
+
 ```
 
 

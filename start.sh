@@ -7,6 +7,7 @@ export TAVILY_API_KEY=""
 
 #offline with ollama
 export OLLAMA_URL=""
+export TOKENIZERS_PARALLELISM=true
 
 
 if [ "$1" == "--webhook_reg" ]

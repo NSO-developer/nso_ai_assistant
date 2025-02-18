@@ -6,6 +6,8 @@ import sys
 from webex_api import *
 import logging
 from github_feedback import *
+from lib.langchain_loader import *
+
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -90,6 +92,8 @@ def recv():
 
 if __name__ == '__main__':
         print()
+        if config["get_content_type"] == "langchain_rag":
+            vdb_init(True)
         if len(sys.argv)>2:
             flag=sys.argv[1]
             if flag == "--webhook_reg":
