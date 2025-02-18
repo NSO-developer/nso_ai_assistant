@@ -61,8 +61,6 @@ The repository also support Github issue creting feature to collect feedback fro
 For data knowledge base, the repository support two mode that configured in "get_content_type". "gitbook_search" mode rely on Gitbook search to obtain informtion. At the same time, "langchain_rag" pull all the information from the Gitbook first and construct a Vector Datastore, than search inside this Vector Datastore with specific keyword that extract from the question. This Vector Datstore is tailed for NSO Gitbook Guide to make sure the search maintain high efficiency. Embedder that used in the langchain is specified in "embedding_model" and this embedder reside on Huggingface when the "deploy_mode" is remote. When the "deploy_mode" is local, embedder is used from Ollama server locally.
 
 
-```
-
 
 ### CLI - "com_int":"cli"
 
@@ -118,16 +116,18 @@ Webhook_URL=""
 ```
 "ai_bot_token" is the webex bot auth token
 Webhook_URL is the Webhook access URL
+
 * Register Webhook towards Webex bot with the token "ai_bot_token"
 ```
 sh start.sh --webhook_reg
 ```
+
 * Start the bot server with the following command
 ```
 sh start.sh --webex
 ```
-* Find your bot on Webex and interact with it
 
+* Find your bot on Webex and interact with it
 
 
 ## Sample Interaction
@@ -136,12 +136,33 @@ sh start.sh --webex
 
 
 ### CLI
+
 ```
 User>
-How to upgrade NSO
+What is CDB?
+AI> 
+Seems like you want some answer on general question. Let me think.....
 
 AI> 
-Upgrading NSO (Network Services Orchestrator) involves several steps and considerations, depending on the type of upgrade (maintenance or major) and the setup (single instance or highly available). Here's a step-by-step guide based on the provided context:
+CDB stands for Configuration Database. It is a dedicated built-in storage for data in NSO (Network Services Orchestrator). The CDB was built from the ground up to efficiently store and access network configuration data, such as device configurations, service parameters, and even configuration for NSO itself.
+
+The CDB is a hierarchical database, which means it stores data in a tree-like structure, unlike traditional SQL databases that store data as rows in a table. This allows for efficient storage and retrieval of configuration data.
+
+The CDB provides an interface to the configuration database, which stores all configuration data. With the CDB API, users can start a CDB session to read configuration data, subscribe to changes in the CDB, and store operational data.
+
+The CDB API is intended to be fast and lightweight, and CDB read sessions are expected to be short-lived and fast. The NSO transaction manager is surpassed by the CDB, and therefore, write operations on configurational data are prohibited. However, if operational data is stored in the CDB, both read and write operations on this data are allowed.
+
+To initialize the CDB API, a CDB socket has to be created and passed into the API base class. The CDB session can be used to control the current position in the model, and the CDB subscription mechanism allows an external Java program to be notified when different parts of the configuration change.
+
+Source:
+https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/cdb-and-yang
+https://cisco-tailf.gitbook.io/nso-docs/guides/development/core-concepts/api-overview/java-api-overview
+      
+Average execution time: 12.382767915725708
+      
+I did not do well? Leave me a [Feedback]() on Github 
+
+```
 
 ### Preparation
 
@@ -185,15 +206,9 @@ Upgrading NSO (Network Services Orchestrator) involves several steps and conside
 - Ensure that the upgrade process is properly tested in a non-production environment before applying it to production systems.
 - Refer to the official NSO documentation and example scripts for detailed instructions and best practices.
 
-Source: 
-- https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/upgrade-nso
-- https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/upgrade-nso#ch_upgrade.ha
-Average execution time: 16.281326055526733
-
-```
-
 ## Alternative Approach
 If one want to use more general approach, one can also try the RAG(AnythingLLM) + Ollama approach. This part of the code is for demo and testing purpose to compare with our version of approach.
+
 #### Offline Model - llama3.1 8B with RAG
 * Deploy offline model
 ```
@@ -255,15 +270,16 @@ sh start_ollama.sh --cli
 
 
 ## Feedback Feature
+
 The repository also have the feature of collecting feedback in Github as an issues. By default this is set towards the NSO-developer repository - "https://github.com/NSO-developer/nso_ai_assistant". When creating the issue, the issue description will be pre-populated with the following content. This can make the issue open easier. 
 ```
-Question
+**Question**
 {Question Asked}
 
-Answer from AI
+**Answer from AI**
 {Anser Got}
 
-Expected Answer(Optional)
+**Expected Answer(Optional)**
 What do you want to see and how should it be improved.
 
 ```
