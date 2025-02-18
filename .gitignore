@@ -4,3 +4,5 @@ logs/*.log
 start_local.sh
 start_ollama_local.sh
 *.log
+resources/vectordb/*
+!resources/vectordb/.gitkeep

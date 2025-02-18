@@ -7,6 +7,7 @@ from llama_api import *
 import json
 from webex_api import send,webhook_reg
 import urllib.parse
+from lib.langchain_loader import *
 
 
 # Create and configure logger
@@ -88,14 +89,14 @@ def handler(msg,config):
   ]
 
   
-  logging.info("Getting keyword")
+  logger.info("Getting keyword")
   keyword=keyword_scrapper(msg,config['deploy_mode'])
-  logging.info("Keyword: "+keyword)
+  logger.info("Keyword: "+keyword)
 
-  logging.info("Searching Gitbook")
-  search_result = search(keyword)
-  logging.info("Searching Gitbook Done")
-  logging.info("Gitbook Content: "+search_result)
+  logger.info("Searching Gitbook")
+  search_result = search(keyword,msg)
+  logger.info("Searching Gitbook Done")
+  logger.info("Gitbook Content: "+search_result)
 
 
 
@@ -120,24 +121,24 @@ def handler(msg,config):
                     "role": "system",
                     "content": systemPrompt,
                 })
-  logging.info("Getting support information from Tavily for tool")
+  logger.info("Getting support information from Tavily for tool")
   toolPrompt=tavily(msg)  
-  logging.info("Getting support information from Tavily for tool Done")
+  logger.info("Getting support information from Tavily for tool Done")
 
   if toolPrompt:
-    logging.info("Tavily return useful result. Support enabled. - "+ toolPrompt)
+    logger.info("Tavily return useful result. Support enabled. - "+ toolPrompt)
     messages.append({
                       "role": "tool",
                       "content": toolPrompt,
                   })
   try:
-    logging.info("AI creating answer based on context")
+    logger.info("AI creating answer based on context")
     stream=llama32(messages,config['deploy_mode'])
-    logging.info("AI creating answer based on context Done")
+    logger.info("AI creating answer based on context Done")
   except:
-    logging.error("Error detected when trying to fetch answer from AI")
-    logging.info("Retry with only 1 top result")
-    search_result = search(keyword,top_result=1)
+    logger.error("Error detected when trying to fetch answer from AI")
+    logger.info("Retry with only 1 top result")
+    search_result = search(keyword,msg,top_result=1)
     systemPrompt = f'''
     {general}
 
@@ -152,14 +153,14 @@ def handler(msg,config):
                     "role": "system",
                     "content": systemPrompt,
                 })
-    logging.info("AI creating answer based on context with one result")
+    logger.info("AI creating answer based on context with one result")
     stream=llama32(messages_backup,config['deploy_mode'])
-    logging.info("AI creating answer based on context with one result Done")
+    logger.info("AI creating answer based on context with one result Done")
 
   response=get_data(stream,config['deploy_mode'])
   out=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
-  print("response2:" + str(response))
-  print("out:" + out)
+  #print("response2:" + str(response))
+  #print("out:" + out)
 
   return out
 
@@ -178,7 +179,7 @@ def main(msg,cec_in=""):
         send("Let me think.....",cec=cec_in)
       start = time.time()
       response=handler(msg,config)
-      print("response1:" + response)
+      #print("response1:" + response)
       end = time.time()
     elif purpose == 2 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
       start = time.time()
@@ -197,8 +198,8 @@ def main(msg,cec_in=""):
       logger.error("Undefined Purpose")
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
-    print("msg:" + msg)
-    print("response:" + response)
+    #print("msg:" + msg)
+    #print("response:" + response)
     url_msg=urllib.parse.quote_plus(msg)
     url_response=urllib.parse.quote_plus(response)
 
@@ -212,6 +213,8 @@ def main(msg,cec_in=""):
       return response + f'\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
+    if config["get_content_type"] == "langchain_rag":
+      vdb_init(True)
     #api_init(config)
     logger.info("Deploy mode: "+ config['deploy_mode'])
     while True:

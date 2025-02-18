@@ -21,7 +21,7 @@ except ImportError:
 
 TAVILY_API_KEY = os.environ["TAVILY_API_KEY"]
 # Create and configure logger
-logging.basicConfig(filename="logs/llama.log",
+logging.basicConfig(filename="logs/llama_code_gen.log",
                     format='%(asctime)s %(message)s',
                     filemode='w')
 
@@ -145,7 +145,7 @@ def create_system(code_language,nso_service_doc_yang,config_doc,network_keyword,
   '''
   else:
       code_language=None
-      logging.error("Error: Unsupported programming language")
+      logger.error("Error: Unsupported programming language")
       raise Exception("Wrong Programming Language")
   return systemPrompt
 
@@ -157,7 +157,7 @@ def service_doc(code_language):
      nso_service_api_doc=search("Service and Action Callbacks",top_result=1) + search("Developing our First Service Application",top_result=1)
   else:
       code_language=None
-      logging.error("Error: Unsupported programming language")
+      logger.error("Error: Unsupported programming language")
       raise Exception("Wrong Programming Language")
   return nso_service_api_doc
 
@@ -231,21 +231,21 @@ def get_programming_language(keyword):
   else:
       code_language=None
       print("Error: Unsupported programming language")
-      logging.error("Error: Unsupported programming language")
+      logger.error("Error: Unsupported programming language")
   return code_language
 
 def info_prep():
-  logging.info("Caching How to write Yang Model")
+  logger.info("Caching How to write Yang Model")
   nso_service_doc_yang=search("Service Model Captures Inputs",top_result=1)
-  logging.info("Caching How to write Yang Model")
+  logger.info("Caching How to write Yang Model")
 
-  logging.info("Caching python api doc")
+  logger.info("Caching python api doc")
   nso_service_pyapi_doc=service_doc("python")
-  logging.info("Caching python api doc Done")
+  logger.info("Caching python api doc Done")
 
-  logging.info("Caching python java doc")
+  logger.info("Caching python java doc")
   nso_service_japi_doc=service_doc("java")
-  logging.info("Caching python java doc Done")
+  logger.info("Caching python java doc Done")
 
   return(nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)
 
@@ -260,31 +260,31 @@ def handler(msg,cache,config):
   ]
 
   
-  logging.info("Getting keyword")
+  logger.info("Getting keyword")
   keyword=keyword_scrapper(msg,config['deploy_mode'])
-  logging.info("Keyword: "+keyword)
-  logging.info("Getting Programming Language")
+  logger.info("Keyword: "+keyword)
+  logger.info("Getting Programming Language")
   code_language=get_programming_language(keyword)
   if not code_language:
      return ""
-  logging.info("Getting Programming Language Done")
+  logger.info("Getting Programming Language Done")
 
-#  logging.info("Getting NSO service doc")
+#  logger.info("Getting NSO service doc")
 #  nso_service_doc=search("Implementing Services",top_result=1)
-#  logging.info("Getting NSO service doc Done")
+#  logger.info("Getting NSO service doc Done")
 
-  logging.info(f'Getting Network Keyword')
+  logger.info(f'Getting Network Keyword')
   network_keyword=network_keyword_scrapper(msg,config['deploy_mode'])
-  logging.info(f'Getting Network Keyword - {network_keyword} Done ')
+  logger.info(f'Getting Network Keyword - {network_keyword} Done ')
 
-  logging.info(f'Getting Network Device Vendor')
+  logger.info(f'Getting Network Device Vendor')
   vendor=vendor_keyword_scrapper(msg,config['deploy_mode'])
-  logging.info(f'Getting Network Device Vendor - {vendor} Done ')
+  logger.info(f'Getting Network Device Vendor - {vendor} Done ')
 
 
-  logging.info(f'Getting Configuration Guide')
+  logger.info(f'Getting Configuration Guide')
   config_doc=tavily_search(vendor,network_keyword)
-  logging.info(f'Getting Configuration Done ')
+  logger.info(f'Getting Configuration Done ')
 
   if code_language.lower() =="python":
      nso_service_api_doc=nso_service_pyapi_doc
@@ -297,14 +297,14 @@ def handler(msg,cache,config):
 
   systemPrompt=create_system(code_language,nso_service_doc_yang,config_doc,network_keyword,vendor,nso_service_api_doc)
 
-  logging.info(f'System Prompt: {systemPrompt}')
+  logger.info(f'System Prompt: {systemPrompt}')
   messages.append({
                     "role": "system",
                     "content": systemPrompt,
                 })
-  logging.info("AI creating answer based on context")
+  logger.info("AI creating answer based on context")
   stream=llama32(messages,config['deploy_mode'])
-  logging.info("AI creating answer based on context Done")
+  logger.info("AI creating answer based on context Done")
 
   response=get_data(stream,config['deploy_mode'])
   print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
