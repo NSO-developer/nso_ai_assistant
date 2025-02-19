@@ -19,9 +19,7 @@ To compare our design with more general approach like AnythingLLM, we also provi
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API. 
 
 ## Pros and Cons  
-
-<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png" alt="NSO AI Pipeline Design" width="800" height="600">
-
+![Pros and Cons](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png)
 
 ## Pre-requisition
 * Chat Model Requirment: 
