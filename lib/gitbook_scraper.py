@@ -269,35 +269,37 @@ def get_content(url_list,dataset,top_result=2):
     #print(out)
     return out
 
+
+def gitbook_query(query,top_result):
+    dataset_conf=[]
+    if "upgrade" in query and "nso" not in query:
+            query="nso "+query
+    elif ("northbound" in query or "ncs.conf" in  query):
+        r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
+        if r.status_code <200 and r.status_code >300:
+            raise requests.exceptions.HTTPError
+        else:
+            cache=r.content  
+        conf_ph=query.replace("northbound","")   
+        conf_ph=conf_ph.replace("ncs.conf","")   
+        conf_ph=conf_ph.replace("config","")  
+        conf_ph=conf_ph.replace("configuration","")
+        conf_ph=conf_ph.replace("set","")
+        conf_ph=conf_ph.replace("\"","")
+        get_conf_context(conf_ph,cache,dataset_conf,"bypass")
+
+    url_list=get_url(query)
+    content=get_content(url_list,dataset_conf,top_result)
+    return content
+
 def search(query,msg,top_result=2):
     query=query.lower()
-    #print(query)
-
-
-    #print("dataset_conf: "+str(dataset_conf))
-
+    top_result_i=top_result//2
+    if top_result_i*2 != top_result:
+        top_result_rag=top_result_i+1
+        top_result_gitbook=top_result_i
     if config["get_content_type"] == "gitbook_search":
-        dataset_conf=[]
-        if "upgrade" in query and "nso" not in query:
-            query="nso "+query
-        elif ("northbound" in query or "ncs.conf" in  query):
-            r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
-            if r.status_code <200 and r.status_code >300:
-                raise requests.exceptions.HTTPError
-            else:
-                cache=r.content  
-            conf_ph=query.replace("northbound","")   
-            conf_ph=conf_ph.replace("ncs.conf","")   
-            conf_ph=conf_ph.replace("config","")  
-            conf_ph=conf_ph.replace("configuration","")
-            conf_ph=conf_ph.replace("set","")
-            conf_ph=conf_ph.replace("\"","")
-            #print("northbound searching sequence - "+conf_ph)
-            #print("conf_ph:"+ conf_ph)
-            get_conf_context(conf_ph,cache,dataset_conf,"bypass")
-
-        url_list=get_url(query)
-        content=get_content(url_list,dataset_conf,top_result)
+        content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
         #urls=[]
         #for url,_mode in url_list:
@@ -306,6 +308,9 @@ def search(query,msg,top_result=2):
         #print("unique_urls: "+str(unique_urls))
         content=query_vdb(query,top_result=2)
         #content=langchain_query(unique_urls,msg,top_result)
+    elif config["get_content_type"] == "hybrid":
+        content=gitbook_query(query,top_result=top_result_gitbook)
+        content=content+query_vdb(query,top_result=top_result_rag)
     else:
         logger.error("Wrong get_content_type")
     #print("dataset_conf after: "+str(dataset_conf))
