@@ -42,6 +42,8 @@ If you want to use the alternative approach compare the result with our version 
 ## Test Enviorment
 * Linux Ubuntu 24
 * Python 3.9.21 / Python 3.13
+* AI Chat Model - Together.ai "meta-llama/llama-3.3-70B-Instruct-Turbo-Free"
+* Embedder for LangChain RAG - HuggingFace "sentence-transformers/all-mpnet-base-v2"
 
 
 ## Usage
