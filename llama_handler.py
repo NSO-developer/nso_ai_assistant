@@ -8,19 +8,15 @@ import json
 from webex_api import send,webhook_reg
 import urllib.parse
 from lib.langchain_loader import *
+import traceback
 
 
-# Create and configure logger
-logging.basicConfig(filename="logs/llama.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
-
-# Creating an object
-logger = logging.getLogger()
-
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/llama.log")        
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('llama')
 logger.setLevel(logging.INFO)
-logger.addHandler(logger)
+logger.addHandler(handler)
 
 
 config=load_config()
@@ -122,9 +118,12 @@ def handler(msg,config):
                     "role": "system",
                     "content": systemPrompt,
                 })
-  logger.info("Getting support information from Tavily for tool")
-  toolPrompt=tavily(msg)  
-  logger.info("Getting support information from Tavily for tool Done")
+  if config['get_content_type'] !="hybrid":
+    logger.info("Getting support information from Tavily for tool")
+    toolPrompt=tavily(msg)  
+    logger.info("Getting support information from Tavily for tool Done")
+  else:
+     toolPrompt=None
 
   if toolPrompt:
     logger.info("Tavily return useful result. Support enabled. - "+ toolPrompt)
@@ -137,9 +136,14 @@ def handler(msg,config):
     stream=llama32(messages,config['deploy_mode'])
     logger.info("AI creating answer based on context Done")
   except:
+    logger.error(traceback.format_exc())
     logger.error("Error detected when trying to fetch answer from AI")
-    logger.info("Retry with only 1 top result")
-    search_result = search(keyword,msg,top_result=1)
+    if config["get_content_type"] == "hybrid":
+      logger.info("Retry with Langchain 2 top result")
+      query_vdb(query,top_result=2)
+    else:
+      logger.info("Retry with only 1 top result")
+      search_result = search(keyword,msg,top_result=1)
     systemPrompt = f'''
     {general}
 

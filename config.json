@@ -3,9 +3,9 @@
     "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
     "embedding_model":"sentence-transformers/all-mpnet-base-v2",
     "together_mode":"api",
-    "com_int":"webex",
+    "com_int":"cli",
     "bot_email_prefix":"cisco.com",
     "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
     "doc_keepalive": 14,
-    "get_content_type":"langchain_rag"
+    "get_content_type":"hybrid"
 }

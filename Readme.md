@@ -1,8 +1,12 @@
 # NSO Gitbook AI Bot
-This project explore 2 approach to build a AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://cisco-tailf.gitbook.io/nso-docs/. The first approach rely on the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. While the second way is with Langchain to construct a tailed RAG that have the following goal
-* Vector Datastore need to tailed to NSO Gitbook Guide with one chapter per chunk
-* When query, enough support is provided to retrive from the Vector Datastore
-* Data must be cleaned and easy to understand by the LLM
+This project explore 3 approach to build a AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://cisco-tailf.gitbook.io/nso-docs/. 
+
+* Gitbook Search - The first approach rely on the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. 
+* Langchain RAG - While the second way is with Langchain to construct a tailed RAG that have the following goal
+    * Vector Datastore need to tailed to NSO Gitbook Guide with one chapter per chunk
+    * When query, enough support is provided to retrive from the Vector Datastore
+    * Data must be cleaned and easy to understand by the LLM
+* Hybrid - Hybrid between Gitbook Search and Langchain RAG by taking the top 1 result from both search and use it together to construct query towards AI module. In this case, we benifit from the pros and cons on both module and trying to create more neutral result. At the same time, Gitbook Search failed to match, Langchain RAG will try to take over. In this case, we can make up to the non-match issue of the Gitbook Search.
 
 Therefore I created this repository to provide more accurate AI searching engine/bot to answer quick question from NSO Customer and Developer side. 
 
@@ -13,6 +17,11 @@ To compare our design with more general approach like AnythingLLM, we also provi
 ## Available Feature
 * Answer NSO related question that has been specified in the Gitbook
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API. 
+
+## Pros and Cons  
+
+<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png" alt="NSO AI Pipeline Design" width="800" height="600">
+
 
 ## Pre-requisition
 * Chat Model Requirment: 

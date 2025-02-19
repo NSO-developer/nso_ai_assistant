@@ -24,18 +24,14 @@ elif  mode == "general":
 else:
     print("ERROR: invalid mode")
 
-# Create and configure logger
-logging.basicConfig(filename="logs/webex.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
 
-# Creating an object
-logger = logging.getLogger()
 
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/webex.log")        
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('webex')
 logger.setLevel(logging.INFO)
-
-
+logger.addHandler(handler)
 
 
 @app.route("/",methods=['POST'])    # all request for localhost:4444/  will reach this method

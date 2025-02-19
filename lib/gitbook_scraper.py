@@ -9,28 +9,25 @@ import time
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import re
-from readability import Document
+from readability import Document as R_Document
 import threading
 import json
 import logging
 from .langchain_loader import *
+import traceback
 
 
 chrome_options = Options()
 chrome_options.add_argument("--headless=new") # for Chrome >= 109
 
 
-# Create and configure logger
-logging.basicConfig(filename="logs/gitbook_scraper.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
-
-# Creating an object
-logger = logging.getLogger()
-logger.addHandler(logger)
-
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/gitbook_scraper.log")  
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('gitbook_scraper')
 logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+
 
 def load_config():
   with open('config.json', 'r') as file:
@@ -99,12 +96,11 @@ def parse_content(url,mode,dataset,query=None,cache=None,first=True):
         if r.status_code <200 and r.status_code >300:
             raise requests.exceptions.HTTPError
         else:
-            parsed_html=(r.content)
+            parsed_html=r.content
     else:
-        
         parsed_html=cache
-
-    doc = Document(parsed_html)
+    #print(parsed_html)
+    doc = R_Document(parsed_html)
     summary=doc.summary()
 
     soup = BeautifulSoup(summary, features="html.parser")
@@ -212,13 +208,11 @@ def del_skip(dataset):
     return dataset
 
 
-def get_content(url_list,dataset,top_result=2):
+def get_content(url_list,dataset,top_result=2,query=""):
     out=""
     #top_result=1
     #print(url_list)
     url_list=url_list[:top_result]
-
-    #print(url_list)
     thread_pool=[]
     #print(url_list)
     for (url,mode) in url_list:
@@ -231,8 +225,9 @@ def get_content(url_list,dataset,top_result=2):
         t.join()
         #print("t.join()")
     cache=None
-
+    #print(dataset)
     for (data,skip) in dataset:
+        #print((data,skip))
         if skip != None:
             if ("ncs.conf" or "ncs-config" in data)  and not skip:
                 #print(data)
@@ -261,9 +256,12 @@ def get_content(url_list,dataset,top_result=2):
                     for (data_conf,_skip) in dataset_conf:
                         out=out+ str(data_conf)
                         #print(leaf)
+                    #print(data)
                     out=out+"\n\n"
+
             if not skip:
                 out=out+ str(data)  +"\n\n"
+                #print((data,skip))
         else:
              out=out+ str(data)  +"\n\n"
     #print(out)
@@ -287,30 +285,45 @@ def gitbook_query(query,top_result):
         conf_ph=conf_ph.replace("set","")
         conf_ph=conf_ph.replace("\"","")
         get_conf_context(conf_ph,cache,dataset_conf,"bypass")
-
     url_list=get_url(query)
-    content=get_content(url_list,dataset_conf,top_result)
+    backup_url=url_list.copy()
+
+    #print(url_list)
+    content=get_content(url_list,dataset_conf,top_result,query=query)
+    while len(content)==0:
+        logger.info("content empty in get_content for urls - "+str(url_list)+". Try the next round of URL")
+        url_list=backup_url[top_result:]
+        content=get_content(url_list,dataset_conf,top_result,query=query)
     return content
 
 def search(query,msg,top_result=2):
     query=query.lower()
     top_result_i=top_result//2
+
     if top_result_i*2 != top_result:
         top_result_rag=top_result_i+1
         top_result_gitbook=top_result_i
+    else:
+        top_result_gitbook=top_result_i
+        top_result_rag=top_result_i
+    content=""
     if config["get_content_type"] == "gitbook_search":
         content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
-        #urls=[]
-        #for url,_mode in url_list:
-        #    urls.append(url.split("#")[-2])
-        #unique_urls = list(set(urls))
-        #print("unique_urls: "+str(unique_urls))
         content=query_vdb(query,top_result=2)
-        #content=langchain_query(unique_urls,msg,top_result)
     elif config["get_content_type"] == "hybrid":
-        content=gitbook_query(query,top_result=top_result_gitbook)
+        try:
+            content=gitbook_query(query,top_result=top_result_gitbook)
+            logger.info("gitbook_query Get Content - SUCCESS")
+        except:
+            logger.info("gitbook_query Get Content - FAILED")
+            logger.info("Fallback to Langchain")
+            logger.error(traceback.format_exc())
+            top_result_rag=top_result
+        #print(content)
         content=content+query_vdb(query,top_result=top_result_rag)
+        #print(content)
+        logger.info("query_vdb Get Content - SUCCESS")
     else:
         logger.error("Wrong get_content_type")
     #print("dataset_conf after: "+str(dataset_conf))

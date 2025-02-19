@@ -24,21 +24,12 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents import Document
 
-
-
-
-
-# Create and configure logger
-logging.basicConfig(filename="logs/langchain_gitbook.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
-
-# Creating an object
-logger = logging.getLogger()
-logger.addHandler(logger)
-
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/langchain_gitbook.log")        
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('langchain_gitbook')
 logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 
 def load_config():

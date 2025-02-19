@@ -20,17 +20,16 @@ except ImportError:
 
 
 TAVILY_API_KEY = os.environ["TAVILY_API_KEY"]
-# Create and configure logger
-logging.basicConfig(filename="logs/llama_code_gen.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
 
-# Creating an object
-logger = logging.getLogger()
-logger.addHandler(logger)
 
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/llama_code_gen.log")        
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('llama_code_gen')
 logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+
+
 
 
 client = Together()

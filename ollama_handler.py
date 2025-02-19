@@ -6,17 +6,15 @@ import logging
 import uuid
 
 
-# Create and configure logger
-logging.basicConfig(filename="logs/ollama.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
 
-# Creating an object
-logger = logging.getLogger()
-logger.addHandler(logger)
-
-# Setting the threshold of logger to DEBUG
+handler = logging.FileHandler("logs/ollama.log")        
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger('ollama')
 logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+
+
 
 workspace=os.environ['WORKSPACE']
 ip=os.environ['ANYTHINGLLM_IP']
