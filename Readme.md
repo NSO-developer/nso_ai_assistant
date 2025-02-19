@@ -1,4 +1,4 @@
-# NSO Gitbook AI Bot
+# NSO AI Assistant
 This project explore 3 approach to build a AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://cisco-tailf.gitbook.io/nso-docs/. 
 
 * Gitbook Search - The first approach rely on the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. 
