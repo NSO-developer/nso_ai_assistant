@@ -27,6 +27,7 @@ logging.basicConfig(filename="logs/gitbook_scraper.log",
 
 # Creating an object
 logger = logging.getLogger()
+logger.addHandler(logger)
 
 # Setting the threshold of logger to DEBUG
 logger.setLevel(logging.INFO)

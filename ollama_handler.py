@@ -13,6 +13,7 @@ logging.basicConfig(filename="logs/ollama.log",
 
 # Creating an object
 logger = logging.getLogger()
+logger.addHandler(logger)
 
 # Setting the threshold of logger to DEBUG
 logger.setLevel(logging.INFO)

@@ -20,6 +20,7 @@ logger = logging.getLogger()
 
 # Setting the threshold of logger to DEBUG
 logger.setLevel(logging.INFO)
+logger.addHandler(logger)
 
 
 config=load_config()
