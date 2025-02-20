@@ -104,6 +104,7 @@ if __name__ == '__main__':
             else:
                 print("Oauth token exist: "+token)
                 
+            schedule_update()
             print("Server Up and waiting for request")
             from waitress import serve
             serve(app, host="0.0.0.0", port=7001)

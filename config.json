@@ -7,5 +7,6 @@
     "bot_email_prefix":"cisco.com",
     "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
     "doc_keepalive": 14,
-    "get_content_type":"hybrid"
+    "get_content_type":"hybrid",
+    "database_check_time":"01:00"
 }

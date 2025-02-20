@@ -12,3 +12,4 @@ langchain_huggingface
 langchain_ollama
 langchain_core
 chromadb
+schedule

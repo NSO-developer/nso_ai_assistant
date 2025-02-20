@@ -13,7 +13,8 @@ except ImportError:
 import re
 from bs4 import BeautifulSoup 
 from multiprocessing import Manager
-
+import time
+import schedule
 
 os.environ['USER_AGENT'] = 'myagent'
 
@@ -83,6 +84,7 @@ def splitter(urls):
     pool={}
     for url in urls:
         url=re.sub('/nso-6.[1-9]*/', '/', url)
+
         current=datetime.datetime.now()
         if url in database.keys():
             database_obj=datetime.datetime.strptime(database[url], '%m/%d/%Y %H:%M:%S')
@@ -91,6 +93,7 @@ def splitter(urls):
             diff=config["doc_keepalive"]+1
         if diff >config["doc_keepalive"]:
             pool[url]=threading.Thread(target=splitter_document, args=(url,contents))
+
     for thread in pool.values():
         thread.start()
     for thread in pool.values():
@@ -279,6 +282,27 @@ def get_all_url(url,urls):
             #print("https://cisco-tailf.gitbook.io"+link)
     return urls
 
+
+
+
+def update_database():
+    logger.info("Updating Database")
+    vdb_init(True)
+
+def check_schedule(interval):
+    logger.info("Watchdog up. Checking every "+str(interval)+" seconds.")
+    while True:
+        schedule.run_pending()
+        time.sleep(interval)
+    
+def schedule_update():
+    logger.info("Set watchdog to updating database at - "+str(config["database_check_time"]))
+    schedule.every().day.at(config["database_check_time"]).do(update_database)
+    t1=threading.Thread(target=check_schedule, args=(1,))
+    t1.start()
+
+
+    
 
 
 if __name__=="__main__":

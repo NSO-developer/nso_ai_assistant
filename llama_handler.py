@@ -222,6 +222,7 @@ if __name__=="__main__":
       vdb_init(True)
     #api_init(config)
     logger.info("Deploy mode: "+ config['deploy_mode'])
+    schedule_update()
     while True:
       msg = input('\nUser>\n')
       if len(msg)==0:
