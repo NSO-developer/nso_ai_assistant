@@ -57,8 +57,7 @@ def recv():
         api_response = requests.get(get_rooms_url, headers=header, verify=False)
         response_json = api_response.json()
         message = response_json["text"]
-        logger.info("Receive request! - "+str(message))
-        logger.info("From user - "+str(email))
+        logger.info("Receive request! - "+str(message)+" from user - "+str(cec))
         if (email.split("@")[1] != config["bot_email_prefix"]):
             send("Access Denied",cec)
             logger.info("Access Denied from user - "+str(email))
