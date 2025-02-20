@@ -153,68 +153,26 @@ AI>
 Seems like you want some answer on general question. Let me think.....
 
 AI> 
-CDB stands for Configuration Database. It is a dedicated built-in storage for data in NSO (Network Services Orchestrator). The CDB was built from the ground up to efficiently store and access network configuration data, such as device configurations, service parameters, and even configuration for NSO itself.
+CDB stands for Configuration Database, which is a built-in database in Cisco NSO (Network Services Orchestrator). The CDB is designed to store two main things: 
 
-The CDB is a hierarchical database, which means it stores data in a tree-like structure, unlike traditional SQL databases that store data as rows in a table. This allows for efficient storage and retrieval of configuration data.
+1. Intent: This describes what you want from the network, traditionally referred to as a network service, which is what the network ultimately provides to its users.
+2. Network state: This is a copy of the configuration of the managed devices. Knowledge of the network state is essential for correctly provisioning new services, enabling faster diagnosis of problems, and is required for advanced functionality such as self-healing.
 
-The CDB provides an interface to the configuration database, which stores all configuration data. With the CDB API, users can start a CDB session to read configuration data, subscribe to changes in the CDB, and store operational data.
+The CDB is a crucial component of NSO, allowing it to keep track of the desired network configuration (intent) and the actual network configuration (network state). This enables NSO to automate network configuration and management tasks.
 
-The CDB API is intended to be fast and lightweight, and CDB read sessions are expected to be short-lived and fast. The NSO transaction manager is surpassed by the CDB, and therefore, write operations on configurational data are prohibited. However, if operational data is stored in the CDB, both read and write operations on this data are allowed.
+In terms of structure, the CDB can be extended with packages, which allows users to add custom data models and functionality to NSO. For example, the `examples.ncs/getting-started/cdb-yang` package provides an example implementation of how to extend the CDB with YANG models.
 
-To initialize the CDB API, a CDB socket has to be created and passed into the API base class. The CDB session can be used to control the current position in the model, and the CDB subscription mechanism allows an external Java program to be notified when different parts of the configuration change.
+To interact with the CDB, NSO provides various APIs and tools, such as the `ncs-run` command, which allows users to execute scripts and automate tasks on the network devices.
 
 Source:
-https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/cdb-and-yang
-https://cisco-tailf.gitbook.io/nso-docs/guides/development/core-concepts/api-overview/java-api-overview
+- https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
+- https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/cdb-and-yang
       
-Average execution time: 12.382767915725708
+Average execution time: 29.175559043884277
       
 I did not do well? Leave me a [Feedback]() on Github 
 
 ```
-
-### Preparation
-
-1. **Backup**: Always create a backup before starting the upgrade process to ensure you can restore the previous configuration if needed.
-2. **Compatibility**: Ensure that all packages are compatible with the new NSO version. For major upgrades, packages may need to be recompiled.
-3. **HA Setup**: In a highly available setup, ensure that the load path configuration is identical on both primary and secondary nodes.
-
-### Single Instance Upgrade
-
-1. **Download and Install New NSO Release**: Download the new NSO release and install it on the host.
-2. **Stop Current Server**: Stop the currently running NSO server using systemd or an equivalent command.
-3. **Compact CDB Files**: Compact the CDB files write log using the `ncs --cdb-compact $NCS_RUN_DIR/cdb` command.
-4. **Update Symbolic Link**: Update the symbolic link for the currently selected version to point to the newly installed one.
-5. **Update ncs.conf (if necessary)**: Update the `/etc/ncs/ncs.conf` file if necessary.
-6. **Ensure Packages**: Ensure that the `/var/opt/ncs/packages/` directory has appropriate packages for the new version. For major upgrades, rebuild or obtain pre-built packages.
-7. **Start New Version**: Start the new version of the NSO server with the package reload flag set (`NCS_RELOAD_PACKAGES=true` in `/etc/ncs/ncs.systemd.conf`).
-
-### Highly Available (HA) Setup Upgrade
-
-1. **Enable Read-Only Mode**: Enable read-only mode on both nodes to ensure the backup captures the full system state.
-2. **Disable Non-Failover Secondary**: In a 3-node setup, disable the non-failover secondary after taking a backup.
-3. **Promote Designated Secondary**: Promote the designated secondary after disabling HA on the primary.
-4. **Upgrade Primary Node**: Upgrade the primary node following the single instance upgrade steps.
-5. **Re-enable HA**: Re-enable HA on the primary node and ensure read-only mode is disabled after the secondary is upgraded and reconnected.
-
-### Package Upgrades
-
-1. **Backup**: Create a backup before upgrading packages.
-2. **Compile Packages (if necessary)**: Ensure the new package is compiled for the current NSO version.
-3. **Install Package**: Install the new package using the `software packages install` command in the NSO CLI.
-4. **Reload Packages**: Invoke the `packages reload` command.
-
-### NED Upgrades
-
-1. **Major NED Upgrade**: Load the new NED package alongside the old one and perform migration using the `/ncs:devices/device/migrate` action.
-2. **Remove Old NED**: Remove the old NED package after migration is complete.
-
-### Additional Considerations
-
-- Use scripting to automate the upgrade process, especially in HA setups.
-- Ensure that the upgrade process is properly tested in a non-production environment before applying it to production systems.
-- Refer to the official NSO documentation and example scripts for detailed instructions and best practices.
-
 ## Alternative Approach
 If one want to use more general approach, one can also try the RAG(AnythingLLM) + Ollama approach. This part of the code is for demo and testing purpose to compare with our version of approach.
 
