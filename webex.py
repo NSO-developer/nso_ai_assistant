@@ -66,7 +66,9 @@ def recv():
         if (request_body):
             if mode == "nso":
                 logger.info("NSO Specific Pipeline")
-                llama_response=main(message,cec_in=cec)
+                global cache
+                cache=None 
+                llama_response=main(message,cache,cec_in=cec)
                 logger.info("Sending request! - "+str(llama_response))
                 send(llama_response,cec)
                 creat_issue(message,llama_response,cec)
