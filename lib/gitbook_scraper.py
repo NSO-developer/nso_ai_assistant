@@ -170,8 +170,8 @@ def iterate_html(search_result,lvl,text,search_query=None):
             #print("RETURN")
             break
         else:
-            print("Unknow element")
-            print(s.name)
+            logger.error("Unknow element")
+            logger.error(s.name)
             break
         if search_query:
             if " " in search_query:
@@ -296,7 +296,7 @@ def gitbook_query(query,top_result):
         content=get_content(url_list,dataset_conf,top_result,query=query)
     return content
 
-def search(query,msg,top_result=2):
+def search(query,top_result=2):
     query=query.lower()
     top_result_i=top_result//2
 

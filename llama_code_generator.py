@@ -2,7 +2,7 @@ from together import Together
 from tavily import TavilyClient
 from readability import Document
 
-from lib.gitbook_scraper import search
+from lib.gitbook_scraper import search,gitbook_query
 from lib.api_scraper import retrive_database
 import requests 
 
@@ -152,9 +152,9 @@ def create_system(code_language,nso_service_doc_yang,config_doc,network_keyword,
 
 def service_doc(code_language):
   if code_language.lower() =="python":
-    nso_service_api_doc=search(code_language+" Packages",top_result=1)
+    nso_service_api_doc=gitbook_query(code_language+" Packages",top_result=1)
   elif code_language.lower() == "java":
-     nso_service_api_doc=search("Service and Action Callbacks",top_result=1) + search("Developing our First Service Application",top_result=1)
+     nso_service_api_doc=gitbook_query("Service and Action Callbacks",top_result=1) + gitbook_query("Developing our First Service Application",top_result=1)
   else:
       code_language=None
       logger.error("Error: Unsupported programming language")
@@ -165,16 +165,21 @@ def service_doc(code_language):
 
 def tavily_search(vendor,network):
   result = tavily_client.search(network+" configuration of "+ vendor)
-  url = result["results"][0]["url"]
-  r=requests.get(url)
-  if r.status_code <200 and r.status_code >300:
-      raise requests.exceptions.HTTPError
+  #print(result)
+  if len(result["results"]) > 0 :
+    url = result["results"][0]["url"]
+    r=requests.get(url)
+    if r.status_code <200 and r.status_code >300:
+        raise requests.exceptions.HTTPError
 
-  doc = Document(r.content)
-  summary=doc.summary()
-  soup = BeautifulSoup(summary, features="html.parser")
-  text = os.linesep.join([s for s in soup.get_text().splitlines() if s])
-  content="Source: \n"+url+"\nConfiguration Guide: \n"+text
+    doc = Document(r.content)
+    summary=doc.summary()
+    soup = BeautifulSoup(summary, features="html.parser")
+    text = os.linesep.join([s for s in soup.get_text().splitlines() if s])
+    content="Source: \n"+url+"\nConfiguration Guide: \n"+text
+  else:
+     logger.error("No Tavily search result found")
+     content=""
   return content
 
 
@@ -236,16 +241,17 @@ def get_programming_language(keyword):
 
 def info_prep():
   logger.info("Caching How to write Yang Model")
-  nso_service_doc_yang=search("Service Model Captures Inputs",top_result=1)
-  logger.info("Caching How to write Yang Model")
+  #nso_service_doc_yang=search("Service Model Captures Inputs",top_result=1)
+  nso_service_doc_yang=gitbook_query("Service Model Captures Inputs",top_result=1)
+  logger.info("Caching How to write Yang Model Done")
 
   logger.info("Caching python api doc")
   nso_service_pyapi_doc=service_doc("python")
   logger.info("Caching python api doc Done")
 
-  logger.info("Caching python java doc")
+  logger.info("Caching java api doc")
   nso_service_japi_doc=service_doc("java")
-  logger.info("Caching python java doc Done")
+  logger.info("Caching java api doc Done")
 
   return(nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)
 
@@ -307,8 +313,8 @@ def handler(msg,cache,config):
   logger.info("AI creating answer based on context Done")
 
   response=get_data(stream,config['deploy_mode'])
-  print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
-  return response
+  out=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
+  return out
 
 
 

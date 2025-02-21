@@ -20,7 +20,7 @@ logger.addHandler(handler)
 
 
 config=load_config()
-cache=None
+
 
 
 
@@ -91,7 +91,7 @@ def handler(msg,config):
   logger.info("Keyword: "+keyword)
 
   logger.info("Searching Gitbook")
-  search_result = search(keyword,msg)
+  search_result = search(keyword)
   logger.info("Searching Gitbook Done")
   logger.info("Gitbook Content: "+search_result)
 
@@ -143,7 +143,7 @@ def handler(msg,config):
       query_vdb(query,top_result=2)
     else:
       logger.info("Retry with only 1 top result")
-      search_result = search(keyword,msg,top_result=1)
+      search_result = search(keyword,top_result=1)
     systemPrompt = f'''
     {general}
 
@@ -175,7 +175,7 @@ def load_config():
   return data
 
 
-def main(msg,cec_in=""):
+def main(msg,cache,cec_in=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
       if len(cec_in) == 0:
@@ -194,7 +194,7 @@ def main(msg,cec_in=""):
          send("Let me try to craft your code.....", cec=cec_in)
       logger.info("Preparing Cache")
       if cache == None:
-        cache=code_gen_cache()
+         cache=code_gen_cache()
       response=code_gen_handler(msg,cache,config)
       end = time.time()
     else:
@@ -204,7 +204,7 @@ def main(msg,cec_in=""):
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     #print("msg:" + msg)
-    #print("response:" + response)
+    #print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
     url_response=urllib.parse.quote_plus(response)
 
@@ -218,6 +218,8 @@ def main(msg,cec_in=""):
       return response + f'\n\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
+    global cache
+    cache=None 
     if config["get_content_type"] == "langchain_rag":
       vdb_init(True)
     #api_init(config)
@@ -230,4 +232,4 @@ if __name__=="__main__":
       elif msg.lower() == "exit":
           exit()
       else:
-          main(msg)
+          main(msg,cache)
