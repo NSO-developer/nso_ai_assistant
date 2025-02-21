@@ -18,7 +18,7 @@ app = Flask(__name__)
 config=load_config()
 
 if mode == "nso":
-    from llama_handler import main
+    from llama_handler import main,code_gen_cache
 elif  mode == "general":
     from ollama_handler import main as ollama_main
 else:
@@ -67,7 +67,7 @@ def recv():
             if mode == "nso":
                 logger.info("NSO Specific Pipeline")
                 global cache
-                cache=None 
+                cache=code_gen_cache()
                 llama_response=main(message,cache,cec_in=cec)
                 logger.info("Sending request! - "+str(llama_response))
                 send(llama_response,cec)

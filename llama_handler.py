@@ -193,8 +193,6 @@ def main(msg,cache,cec_in=""):
       else:
          send("Let me try to craft your code.....", cec=cec_in)
       logger.info("Preparing Cache")
-      if cache == None:
-         cache=code_gen_cache()
       response=code_gen_handler(msg,cache,config)
       end = time.time()
     else:
@@ -219,7 +217,7 @@ def main(msg,cache,cec_in=""):
 
 if __name__=="__main__":
     global cache
-    cache=None 
+    cache=code_gen_cache()
     if config["get_content_type"] == "langchain_rag":
       vdb_init(True)
     #api_init(config)
