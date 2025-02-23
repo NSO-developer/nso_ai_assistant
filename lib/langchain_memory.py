@@ -69,21 +69,23 @@ def mem_create(cec):
 def mem_retrive(cec_in,query,count=2):
     vectordb=mem_create(cec_in)
     data=query_vdb(query,vectordb,mode="similarity",top_result=count)
-    print(data)
+    #print(data)
     output=[]
-    for data_l in data.split("\n"):
-        data_l_lst=data_l.split("//")
+    for data_l in data.split("##\n\n\n##"):
+        data_l_lst=data_l.split("//**//")
         if len(data_l_lst) >=2:
-            print(data_l_lst)
+            #print(data_l_lst)
             human=data_l_lst[0]
             ai=data_l_lst[1]
             output.append({"role": "user", "content":human})
             output.append({"role": "assistant", "content":ai})
+    logger.info("Obtain the following information: "+str(output))
     return output
 
 def mem_add(cec_in,query,answer):
     vectordb=mem_create(cec_in)
     add_vector_databases(query,answer,vectordb)
+    logger.info("Save the following information for "+cec_in+": "+str((query,answer)))
 
 
 def add_vector_databases(query,answer,vectordb_choice):
@@ -104,7 +106,7 @@ def cleaning_docs(query,answer):
     id=sha.hexdigest()
     ids.append(str(id))
     splitted_doc = Document(
-    page_content=f"{query}//{answer}\n",
+    page_content=f"{query}//**//{answer}##\n\n\n##",
     )
     lst_splitted_doc.append(splitted_doc)
     logger.info("Generating id: "+str(id))
