@@ -8,15 +8,17 @@ This project explore 3 approach to build a AI Assistant that can answer NSO rela
     * Data must be cleaned and easy to understand by the LLM
 * Hybrid - Hybrid between Gitbook Search and Langchain RAG by taking the top 1 result from both search and use it together to construct query towards AI module. In this case, we benifit from the pros and cons on both module and trying to create more neutral result. At the same time, Gitbook Search failed to match, Langchain RAG will try to take over. In this case, we can make up to the non-match issue of the Gitbook Search.
 
+At the same time, this repository also have Userbased Agent Memory. It can answer the question based on previous interaction with the AI. The memory is constructed with a conversational RAG. By query the RAG and extract top 2 relevent conversation previously.
+
 Therefore I created this repository to provide more accurate AI searching engine/bot to answer quick question from NSO Customer and Developer side. 
 
 To compare our design with more general approach like AnythingLLM, we also provide testcode to interact with AnythingLLM as RAG and retrive answer. We call it alternative approach in this readme guide.
 
 <img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png" alt="NSO AI Pipeline Design" width="800" height="600">
 
-## Available Feature
+## Available Feature and Known Issue
 * Answer NSO related question that has been specified in the Gitbook
-* Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API. 
+* Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
 
 ## Pros and Cons  
 ![Pros and Cons](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png)
