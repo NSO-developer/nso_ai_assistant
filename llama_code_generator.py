@@ -256,9 +256,9 @@ def info_prep():
   return(nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)
 
 
-def handler(msg,cache,config):
+def handler(history,msg,cache,config):
   (nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)=cache
-  messages = [
+  messages = history+[
     {
       "role": "user",
       "content": msg

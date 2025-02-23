@@ -8,6 +8,8 @@ import json
 from webex_api import send,webhook_reg
 import urllib.parse
 from lib.langchain_loader import *
+from lib.langchain_memory import *
+
 import traceback
 
 
@@ -77,8 +79,8 @@ def define_purpose(msg,deploy="remote"):
   #print(data)
   return data
 
-def handler(msg,config):
-  messages = [
+def handler(history,msg,config):
+  messages = history+[
     {
       "role": "user",
       "content": msg
@@ -178,22 +180,26 @@ def load_config():
 def main(msg,cache,cec_in=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
-      if len(cec_in) == 0:
-         print("AI> \nSeems like you want some answer on general question. Let me think.....")
-      else:
-        send("Let me think.....",cec=cec_in)
+      if config["com_int"] == "cli":
+         print("AI> \nSeems like you want some answer on general question. Let me think.....")           
+      elif config["com_int"] == "webex":
+        send(f"Hi {cec_in}. Let me think.....",cec=cec_in)
       start = time.time()
-      response=handler(msg,config)
+      hist=mem_retrive(cec_in,msg,count=2)
+      response=handler(hist,msg,config)
+      mem_add(cec_in,msg,response)
       #print("response1:" + response)
       end = time.time()
     elif purpose == 2 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
       start = time.time()
-      if len(cec_in) == 0:
+      if config["com_int"] == "cli":
          print("AI> \nSeems like you want to generate some code. Let me think.....")
-      else:
-         send("Let me try to craft your code.....", cec=cec_in)
+      elif config["com_int"] == "webex":
+         send(f"Hi {cec_in}. Let me try to craft your code.....", cec=cec_in)
       logger.info("Preparing Cache")
-      response=code_gen_handler(msg,cache,config)
+      hist=mem_retrive(cec_in,msg,count=2)
+      response=code_gen_handler(hist,msg,cache,config)
+      mem_add(cec_in,msg,response)
       end = time.time()
     else:
       response=""
@@ -217,12 +223,16 @@ def main(msg,cache,cec_in=""):
 
 if __name__=="__main__":
     global cache
+    print("Initializing.......")
     cache=code_gen_cache()
     if config["get_content_type"] == "langchain_rag":
       vdb_init(True)
     #api_init(config)
     logger.info("Deploy mode: "+ config['deploy_mode'])
     schedule_update()
+    print("Initializing.......Done")
+    cec_in = input('AI>\n Before we start, please let me know who you are. What is your Username?\nUser>\n')
+    print(f"Hi {cec_in}. What can I help you about Cisco NSO today?")
     while True:
       msg = input('\nUser>\n')
       if len(msg)==0:
@@ -230,4 +240,4 @@ if __name__=="__main__":
       elif msg.lower() == "exit":
           exit()
       else:
-          main(msg,cache)
+          main(msg,cache,cec_in)

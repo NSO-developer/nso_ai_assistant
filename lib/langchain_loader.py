@@ -49,6 +49,8 @@ elif config["deploy_mode"]=="local":
 else:
     logger.error("Wrong deploy_mode!")
 
+
+
 persist_directory = 'resources/vectordb'
 init=False
 if not os.path.exists(persist_directory+"/chroma.sqlite3"):
