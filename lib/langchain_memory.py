@@ -28,7 +28,7 @@ from langchain_core.documents import Document
 handler = logging.FileHandler("logs/langchain_mem.log")        
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
-logger = logging.getLogger('langchain_gitbook')
+logger = logging.getLogger('langchain_mem')
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
