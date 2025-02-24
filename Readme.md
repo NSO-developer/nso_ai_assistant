@@ -216,7 +216,7 @@ mintplexlabs/anythingllm
         * Choose Bult Link Scraper
         * Provide the following Parameter:
             * Gitbook URL - https://cisco-tailf.gitbook.io/nso-docs
-            * Deptch - 3
+            * Depth - 3
             * Max Links - 100
 * Add the newly added data into the Workspace
     * Choose Document in Data Upload
