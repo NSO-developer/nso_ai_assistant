@@ -306,7 +306,7 @@ def gitbook_query(query,top_result):
 def query_filter(query):
     if "site:" in query:
         out=""
-        data_lst=query.split("site:")
+        data_lst=query.split(" ")
         for data in data_lst:
             if  "site:" not in data:
                 out=out+data
