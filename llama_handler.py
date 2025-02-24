@@ -228,7 +228,7 @@ if __name__=="__main__":
     global cache
     print("Initializing.......")
     cache=code_gen_cache()
-    if config["get_content_type"] == "langchain_rag":
+    if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
       vdb_init(True)
     #api_init(config)
     logger.info("Deploy mode: "+ config['deploy_mode'])

@@ -89,7 +89,7 @@ if __name__ == '__main__':
         print()
         global cache
         cache=code_gen_cache()
-        if config["get_content_type"] == "langchain_rag":
+        if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
             vdb_init(True)
         if len(sys.argv)>2:
             flag=sys.argv[1]
