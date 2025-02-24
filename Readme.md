@@ -177,7 +177,8 @@ I did not do well? Leave me a [Feedback]() on Github
 
 ```
 ## Alternative Approach
-If one want to use more general approach, one can also try the RAG(AnythingLLM) + Ollama approach. This part of the code is for demo and testing purpose to compare with our version of approach.
+This chapter shows how to use more general approach with RAG(AnythingLLM) + Ollama. You can test the result of this approach with the one we created as a AI Agent.  
+This part of the code is for demo and testing purpose to compare with our version of approach.
 
 #### Offline Model - llama3.1 8B with RAG
 * Deploy offline model
