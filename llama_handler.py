@@ -145,7 +145,7 @@ def handler(history,msg,config):
     logger.error("Error detected when trying to fetch answer from AI")
     if config["get_content_type"] == "hybrid":
       logger.info("Retry with Langchain 2 top result")
-      search_result = query_vdb(msg,top_result=2)
+      search_result = query_vdb(keyword,top_result=2)
     else:
       logger.info("Retry with only 1 top result")
       search_result = search(keyword,top_result=1)
