@@ -5,10 +5,10 @@ from llama_code_generator import handler as code_gen_handler
 from llama_code_generator import info_prep as code_gen_cache
 from llama_api import *
 import json
-from webex_api import send,webhook_reg
+from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
-from lib.langchain_memory import *
+from lib.langchain_memory import mem_retrive,mem_add
 
 import traceback
 
@@ -104,7 +104,7 @@ def handler(history,msg,config):
 
   general='''
     You are a Cisco NSO Expert that answer Cisco NSO related question with the help of the context provided. 
-    If you find the provided context is irrelevant, pleade disregard the provided context and use the other context that you find that are more relevant. 
+    If you find the provided context is irrelevant, please disregard the provided context and use the other context that you find that are more relevant. 
     If there are code or command example in the context that can help you answering the question, please include them into your answer. At the same time, consider all scenrio in the context.
     In the end of your answer, mention whatever source that you used to construct your answer. 
     '''
@@ -145,7 +145,7 @@ def handler(history,msg,config):
     logger.error("Error detected when trying to fetch answer from AI")
     if config["get_content_type"] == "hybrid":
       logger.info("Retry with Langchain 2 top result")
-      query_vdb(query,top_result=2)
+      search_result = query_vdb(msg,top_result=2)
     else:
       logger.info("Retry with only 1 top result")
       search_result = search(keyword,top_result=1)

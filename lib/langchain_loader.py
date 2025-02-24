@@ -181,6 +181,7 @@ def cleaning_docs(splitted_doc):
                 logger.info("doc: "+str(doc))
     return (ids,lst_splitted_doc)
 
+
 def query_vdb(query,mode="similarity",top_result=2):
     logger.info("Querying Vector DB in "+ mode+": "+ query)
     datas={}

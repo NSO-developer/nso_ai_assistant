@@ -84,6 +84,7 @@ def requests_llama32(msg):
   return response.text
 
 def llama32(msg, deploy="remote"):
+  #print(msg)
   if deploy == "remote":
     if together_mode == "api":
       stream = client.chat.completions.create(

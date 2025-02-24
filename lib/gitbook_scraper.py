@@ -212,9 +212,9 @@ def get_content(url_list_org,dataset,top_result=2,query=""):
     out=""
     #top_result=1
     #print(url_list)
-    for url in url_list_org:
-        if "http" not in url:
-            list(url_list_org).remove(url)
+    for (url,mode) in url_list_org:
+        if "http://" not in url or "https://" not in url:
+            url_list_org.remove((url,mode))
     url_list=url_list_org[:top_result]
 
     thread_pool=[]
@@ -303,6 +303,17 @@ def gitbook_query(query,top_result):
         content=get_content(url_list,dataset_conf,top_result,query=query)
     return content
 
+def query_filter(query):
+    if "site:" in query:
+        out=""
+        data_lst=query.split("site:")
+        for data in data_lst:
+            if  "site:" not in data:
+                out=out+data
+    else:
+        out=query
+    return out
+
 def search(query,top_result=2):
     query=query.lower()
     top_result_i=top_result//2
@@ -313,11 +324,12 @@ def search(query,top_result=2):
     else:
         top_result_gitbook=top_result_i
         top_result_rag=top_result_i
+    query=query_filter(query)
     content=""
     if config["get_content_type"] == "gitbook_search":
         content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
-        content=query_vdb(query,top_result=top_result*2)
+        content=query_vdb(query,top_result=top_result+1)
     elif config["get_content_type"] == "hybrid":
         try:
             content=gitbook_query(query,top_result=top_result_gitbook)
@@ -326,7 +338,7 @@ def search(query,top_result=2):
             logger.info("gitbook_query Get Content - FAILED")
             logger.info("Fallback to Langchain")
             logger.error(traceback.format_exc())
-            top_result_rag=top_result*2
+            top_result_rag=top_result+1
         #print(content)
         content=content+query_vdb(query,top_result=top_result_rag)
         #print(content)
