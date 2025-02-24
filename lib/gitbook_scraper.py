@@ -208,11 +208,15 @@ def del_skip(dataset):
     return dataset
 
 
-def get_content(url_list,dataset,top_result=2,query=""):
+def get_content(url_list_org,dataset,top_result=2,query=""):
     out=""
     #top_result=1
     #print(url_list)
-    url_list=url_list[:top_result]
+    for url in url_list_org:
+        if "http" not in url:
+            list(url_list_org).remove(url)
+    url_list=url_list_org[:top_result]
+
     thread_pool=[]
     #print(url_list)
     for (url,mode) in url_list:
@@ -286,11 +290,14 @@ def gitbook_query(query,top_result):
         conf_ph=conf_ph.replace("\"","")
         get_conf_context(conf_ph,cache,dataset_conf,"bypass")
     url_list=get_url(query)
+    if len(url_list) == 0:
+        raise Exception("No result return from the Gitbook")
     backup_url=url_list.copy()
 
     #print(url_list)
     content=get_content(url_list,dataset_conf,top_result,query=query)
-    while len(content)==0:
+
+    while len(content)==0 and len(backup_url) > 0:
         logger.info("content empty in get_content for urls - "+str(url_list)+". Try the next round of URL")
         url_list=backup_url[top_result:]
         content=get_content(url_list,dataset_conf,top_result,query=query)
@@ -310,7 +317,7 @@ def search(query,top_result=2):
     if config["get_content_type"] == "gitbook_search":
         content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
-        content=query_vdb(query,top_result=2)
+        content=query_vdb(query,top_result=top_result*2)
     elif config["get_content_type"] == "hybrid":
         try:
             content=gitbook_query(query,top_result=top_result_gitbook)
@@ -319,7 +326,7 @@ def search(query,top_result=2):
             logger.info("gitbook_query Get Content - FAILED")
             logger.info("Fallback to Langchain")
             logger.error(traceback.format_exc())
-            top_result_rag=top_result
+            top_result_rag=top_result*2
         #print(content)
         content=content+query_vdb(query,top_result=top_result_rag)
         #print(content)

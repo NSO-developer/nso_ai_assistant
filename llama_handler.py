@@ -27,7 +27,7 @@ config=load_config()
 
 
 
-def keyword_scrapper(msg,deploy="remote"):
+def keyword_scrapper(history,msg,deploy="remote"):
   # messages = [
   #   {
   #     "role": "user",
@@ -42,16 +42,19 @@ def keyword_scrapper(msg,deploy="remote"):
   #   }
   # ]
 
-  messages = [
+  messages =[
     {
       "role": "system",
-      "content": f'NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO.'
-    },
-    {
-      "role": "user",
-      "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{msg}"? Only provide your best choice.'
+      "content": f'''
+      NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
+      Doc,doc and documentation is in term of NSO Gitbook Documentation.
+      '''
     }
   ]
+  messages=messages+history+[{
+      "role": "user",
+      "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{msg}"? Only provide your best choice.'
+    }]
   
   stream=llama32(messages,deploy)
   response=get_data(stream,deploy)
@@ -89,7 +92,7 @@ def handler(history,msg,config):
   #print(messages)
   
   logger.info("Getting keyword")
-  keyword=keyword_scrapper(msg,config['deploy_mode'])
+  keyword=keyword_scrapper(history,msg,config['deploy_mode'])
   logger.info("Keyword: "+keyword)
 
   logger.info("Searching Gitbook")
@@ -101,7 +104,7 @@ def handler(history,msg,config):
 
   general='''
     You are a Cisco NSO Expert that answer Cisco NSO related question with the help of the context provided. 
-    If you find the provided context is irrelevant, pleade ignore the provided context and use the other context that you find that are more relevant. 
+    If you find the provided context is irrelevant, pleade disregard the provided context and use the other context that you find that are more relevant. 
     If there are code or command example in the context that can help you answering the question, please include them into your answer. At the same time, consider all scenrio in the context.
     In the end of your answer, mention whatever source that you used to construct your answer. 
     '''
@@ -234,7 +237,7 @@ if __name__=="__main__":
     cec_in = input('AI>\n Before we start, please let me know who you are. What is your Username?\nUser>\n')
     print(f"Hi {cec_in}. What can I help you about Cisco NSO today?")
     while True:
-      msg = input('\nUser>\n')
+      msg = input(f'\n{cec_in}>\n')
       if len(msg)==0:
          continue
       elif msg.lower() == "exit":
