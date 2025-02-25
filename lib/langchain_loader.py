@@ -157,7 +157,7 @@ def splitter_document(url,contents,nso_ver):
                 hearder_obj=data
                 header1=data.metadata['Header 1']
                 html_header_splits.remove(data)
-            elif 'Header 2' in data.metadata.keys() :
+            elif 'Header 2' in data.metadata.keys() or  'Header' in data.metadata.keys():
                 header2_checker=True
             else:
                 data.metadata['Header 1']=header1
@@ -200,7 +200,9 @@ def cleaning_docs(splitted_doc):
     lst_splitted_doc=[]
     ids=[]
     for doc in splitted_doc:
-        if not doc.metadata:
+        if not doc:
+            logger.error("Doc is empty. Doc: "+str(doc))
+        elif not doc.metadata:
             logger.error("Doc metadata is empty. Doc: "+str(doc)+" / metadata: "+str(doc.metadata))
         else:
             if len(doc.metadata)>0:
