@@ -200,15 +200,19 @@ def cleaning_docs(splitted_doc):
     lst_splitted_doc=[]
     ids=[]
     for doc in splitted_doc:
-        if len(doc.metadata)>0:
-            sha = hashlib.sha256()
-            sha.update(str(doc.metadata).encode())
-            id=sha.hexdigest()
-            if id not in ids:
-                ids.append(str(id))
-                lst_splitted_doc.append(doc)
-                logger.info("Generating id: "+str(id)+" / metadata: "+str(doc.metadata))
-                #logger.info("doc: "+str(doc))
+        if not doc.metadata:
+            logger.error("Doc metadata is empty. Doc: "+str(doc)+" / metadata: "+str(doc.metadata))
+        else:
+            if len(doc.metadata)>0:
+                sha = hashlib.sha256()
+                sha.update(str(doc.metadata).encode())
+                id=sha.hexdigest()
+                if id not in ids:
+                    ids.append(str(id))
+                    lst_splitted_doc.append(doc)
+                    logger.info("Generating id: "+str(id)+" / metadata: "+str(doc.metadata))
+                    #logger.info("doc: "+str(doc))
+
     return (ids,lst_splitted_doc)
 
 
