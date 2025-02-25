@@ -27,7 +27,7 @@ config=load_config()
 
 
 
-def keyword_scrapper(history,msg,deploy="remote"):
+def keyword_scrapper(msg,deploy="remote"):
   # messages = [
   #   {
   #     "role": "user",
@@ -51,7 +51,7 @@ def keyword_scrapper(history,msg,deploy="remote"):
       '''
     }
   ]
-  messages=messages+history+[{
+  messages=messages+[{
       "role": "user",
       "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{msg}"? Only provide your best choice.'
     }]
@@ -92,7 +92,7 @@ def handler(history,msg,config):
   #print(messages)
   
   logger.info("Getting keyword")
-  keyword=keyword_scrapper(history,msg,config['deploy_mode'])
+  keyword=keyword_scrapper(msg,config['deploy_mode'])
   logger.info("Keyword: "+keyword)
 
   logger.info("Searching Gitbook")
