@@ -65,12 +65,18 @@ You can choose the deployment method between online deployment with together.ai 
     "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
     "doc_keepalive": 14,
     "get_content_type":"langchain_rag",
-    "database_check_time":"01:00"
+    "database_check_time":"01:00",
+    "doc_vers":["6.1","latest"]
+
 }
 ```
 deploy_mode can be "remote" or "local". "remote" is remote deployment with together.ai while "local" is offline deployment with ollama. At the same time "model_name" is the AI model you are decide to use locally or remote from together.ai. The "together_mode" is the mode of the API which can be "legacy" API request through "requets" via HTTPs  - "legacy" or throuhg together Python API - "api". This option is not used when "deploy_mode" is set to "local". Than the parameter "com_int" is the communication interface setting. It can set to "webex" that makes the AI act as a webex bot or interact with CLI interface locally. Eventually, the "bot_email_prefix" parameter limit which email address prefix will the bot answer to. This can help orgnization limit the coverage of the bot.  
 The repository also support Github issue creting feature to collect feedback from the user. To specify which repository you want to open issue on, configure the repository url under "github_repo_url".  
-For data knowledge base, the repository support 3 mode that configured in "get_content_type". "gitbook_search" mode rely on Gitbook search to obtain informtion. At the same time, "langchain_rag" pull all the information from the Gitbook first and construct a Vector Datastore, than search inside this Vector Datastore with specific keyword that extract from the question. This Vector Datstore is tailed for NSO Gitbook Guide to make sure the search maintain high efficiency. Embedder that used in the langchain is specified in "embedding_model" and this embedder reside on Huggingface when the "deploy_mode" is remote. When the "deploy_mode" is local, embedder is used from Ollama server locally. Eventually, the database is checked at everyday at the time mentioned in "database_check_time" to see if it is up to date. The up to date standard is defined by if the last documentation pull is later than "doc_keepalive" amount of days or not. The last mode is "hybrid" mode which balance between the two mode and take the first chice of each method when constructing the query. The pros and cons of each mode can find in the Pros and Cons chapter above. 
+
+For data knowledge base, the repository support 3 mode that configured in "get_content_type". "gitbook_search" mode rely on Gitbook search to obtain informtion. At the same time, "langchain_rag" pull all the information from the Gitbook first and construct a Vector Datastore, than search inside this Vector Datastore with specific keyword that extract from the question. This Vector Datstore is tailed for NSO Gitbook Guide to make sure the search maintain high efficiency.  
+The Embedder that used in the langchain is specified in "embedding_model" and this embedder reside on Huggingface when the "deploy_mode" is remote. When the "deploy_mode" is local, embedder is used from Ollama server locally.  
+
+When starting up the agent, the code will load various version of NSO Gitbook documentation that specify in "doc_vers" into the RAG. These docment construct the initial version of the vector knowledge base. The knowledge is checked at everyday at the time mentioned in "database_check_time" to see if it is up to date. The up to date standard is defined by if the last documentation pull is later than "doc_keepalive" amount of days or not. The last mode is "hybrid" mode which balance between the two mode and take the first chice of each method when constructing the query. The pros and cons of each mode can find in the Pros and Cons chapter above. 
 
 
 

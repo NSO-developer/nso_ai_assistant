@@ -85,7 +85,14 @@ def splitter(urls):
     contents={}
     pool={}
     for url in urls:
-        url=re.sub('/nso-6.[1-9]*/', '/', url)
+        #url=re.sub('/nso-6.[1-9]*/', '/', url)
+        nso_ver = re.search('/nso-6.[1-9]*/', url)
+        if nso_ver:
+            nso_ver=nso_ver.group(0)
+            nso_ver=nso_ver.replace("/","").replace("nso-","")
+        else:
+            nso_ver="latest"
+        logger.info("catagorize doc for - "+str(nso_ver))
 
         current=datetime.datetime.now()
         if url in database.keys():
@@ -94,7 +101,7 @@ def splitter(urls):
         else:
             diff=config["doc_keepalive"]+1
         if diff >config["doc_keepalive"]:
-            pool[url]=threading.Thread(target=splitter_document, args=(url,contents))
+            pool[url]=threading.Thread(target=splitter_document, args=(url,contents,nso_ver))
 
     for thread in pool.values():
         thread.start()
@@ -124,12 +131,12 @@ def web_splitter(url):
         counter+=1
     return out
 
-def splitter_document(url,contents):      
+def splitter_document(url,contents,nso_ver):      
     logger.info("Splitting: "+url)
     headers_to_split_on = [
         ("h1", "Header 1"),
         ("h2", "Header 2"),
-        ("h3", "Header 3"),
+        ("h3", "Header 3")
     ]
     #print(document)
     html_splitter = HTMLHeaderTextSplitter(headers_to_split_on)
@@ -138,7 +145,9 @@ def splitter_document(url,contents):
         html_header_splits = html_splitter.split_text_from_url(url)
     except:
         html_header_splits=web_splitter(url)
-
+    for data in html_header_splits:
+        data.metadata['NSO Version']=nso_ver
+        #print(data)
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
     save_database(url)
@@ -178,7 +187,7 @@ def cleaning_docs(splitted_doc):
                 ids.append(str(id))
                 lst_splitted_doc.append(doc)
                 logger.info("Generating id: "+str(id)+" / metadata: "+str(doc.metadata))
-                logger.info("doc: "+str(doc))
+                #logger.info("doc: "+str(doc))
     return (ids,lst_splitted_doc)
 
 
@@ -204,14 +213,18 @@ def query_vdb(query,mode="similarity",top_result=2):
         #print(index)
         title_str="title: "
         url_str="url: "
+        ver_str="NSO Version: "
         for title,data in res.metadata.items():
             if "Header" in title:
                 title_str=title_str+data+" - "
             elif "url" in title:
                 url_str=url_str+data
+            elif "NSO Version" in title:
+                ver_str=ver_str+data
+
         #print(title_str)
         title_str= title_str[:-3]
-        source=title_str+", "+url_str
+        source=title_str+", "+url_str+", "+ver_str
         datas[index]="source: "+str(source)+"\nresult: "+res.page_content
         #print("source: "+res.metadata['url']+"\nresult: "+res.page_content)
     for data in datas.values():
@@ -252,13 +265,16 @@ def vdb_init(check):
     global database
     database=load_database(manager)
 #    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides"]
-    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides","https://cisco-tailf.gitbook.io/nso-docs/developers"]
-    scraped_urls=get_all_urls(url_nav)
-    scraped_urls=list(set(scraped_urls))
-    #for url in scraped_urls:
-    #    print(url)
-    if check:
-        add_vdb_byurls(scraped_urls)
+    nso_vers=config["doc_vers"]
+    for ver in nso_vers:
+        if ver == "latest":
+            url_nav=[f"https://cisco-tailf.gitbook.io/nso-docs/guides",f"https://cisco-tailf.gitbook.io/nso-docs/developers"]
+        else:
+            url_nav=[f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}"]
+        scraped_urls=get_all_urls(url_nav)
+        scraped_urls=list(set(scraped_urls))
+        if check:
+            add_vdb_byurls(scraped_urls)
 
 #vdb_init(init)
 
@@ -309,10 +325,13 @@ def schedule_update():
 
 
 if __name__=="__main__":
-    vdb_init(True)
-
+    #vdb_init(True)
+    #manager = Manager()
+    #global database
+    #database=load_database(manager)
+    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section3"])
     #urls=['https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section3','https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.1/resources/index/section5','https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5']
-    query="worker query timeout"
+    query="Which JDK version should I use for NSO 6.1?"
     data=query_vdb(query,top_result=2)
     #data=langchain_query(urls,query)
     print("===========Return Data=====================")

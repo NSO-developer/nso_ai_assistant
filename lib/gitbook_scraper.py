@@ -143,7 +143,7 @@ def iterate_html(search_result,lvl,text,search_query=None):
     for s in all_cont: 
         content=""
         #print(s.name)
-        if s.name == 'p' or s.name=='ol' or s.name=='ul':
+        if s.name == 'p' or s.name=='ol' or s.name=='ul' or s.name=='summary':
             #print("p")
             #print(s.get_text())
             if s.name=='ul':
@@ -208,12 +208,12 @@ def del_skip(dataset):
     return dataset
 
 
-def get_content(url_list_org,dataset,top_result=2,query=""):
+def get_content(url_list_org,dataset,top_result=2):
     out=""
     #top_result=1
-    #print(url_list)
     for (url,mode) in url_list_org:
-        if "http://" not in url or "https://" not in url:
+        if "http://" not in url and "https://" not in url:
+            logger.info("removing "+str(url))
             url_list_org.remove((url,mode))
     url_list=url_list_org[:top_result]
 
@@ -272,7 +272,7 @@ def get_content(url_list_org,dataset,top_result=2,query=""):
     return out
 
 
-def gitbook_query(query,top_result):
+def gitbook_query(query,top_result,url_override=[]):
     dataset_conf=[]
     if "upgrade" in query and "nso" not in query:
             query="nso "+query
@@ -289,16 +289,18 @@ def gitbook_query(query,top_result):
         conf_ph=conf_ph.replace("set","")
         conf_ph=conf_ph.replace("\"","")
         get_conf_context(conf_ph,cache,dataset_conf,"bypass")
-    url_list=get_url(query)
+    if len(url_override)>0:
+        url_list=url_override
+        top_result
+    else:
+        url_list=get_url(query)
     if len(url_list) == 0:
         raise Exception("No result return from the Gitbook")
     backup_url=url_list.copy()
+    content=get_content(url_list,dataset_conf,top_result)
 
-    #print(url_list)
-    content=get_content(url_list,dataset_conf,top_result,query=query)
-
-    while len(content)==0 and len(backup_url) > 0:
-        logger.info("content empty in get_content for urls - "+str(url_list)+". Try the next round of URL")
+    while len(content)==0 and len(backup_url) > 0 and len(url_list) > 0:
+        logger.info("content empty in get_content for urls - "+str(backup_url)+". Try the next round of URL")
         url_list=backup_url[top_result:]
         content=get_content(url_list,dataset_conf,top_result,query=query)
     return content
