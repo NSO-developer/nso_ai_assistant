@@ -100,6 +100,7 @@ def splitter(urls):
             diff=(current-database_obj).days
         else:
             diff=config["doc_keepalive"]+1
+
         if diff >config["doc_keepalive"]:
             pool[url]=threading.Thread(target=splitter_document, args=(url,contents,nso_ver))
 
@@ -145,11 +146,22 @@ def splitter_document(url,contents,nso_ver):
         html_header_splits = html_splitter.split_text_from_url(url)
     except:
         html_header_splits=web_splitter(url)
+    #print(html_header_splits)
+    header1=None
     for data in html_header_splits:
         if len(data.metadata) > 0:
+            if 'Header 1' in data.metadata.keys() and 'Header 2' not in data.metadata.keys() :
+                #print("header 1 only:"+str(data)+" url: "+str(url))
+                header1=data.metadata['Header 1']
+                html_header_splits.remove(data)
+            else:
+                data.metadata['Header 1']=header1
+                #print("header 1 and others:"+str(data))
+                #print(data)
             data.metadata['url']=url
-        data.metadata['NSO Version']=nso_ver
-        #print(data)
+            data.metadata['NSO Version']=nso_ver
+            #print(data)
+    print(html_header_splits)
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
     save_database(url)
@@ -163,10 +175,13 @@ def add_vector_databases(splitted_docs):
 def add_vector_database(key,splitted_doc):
     #print(splitted_doc)
     #logger.info("before splitted_doc: "+str(splitted_doc))
+    #print("Before: ")
+    #print(splitted_doc)
     (ids,splitted_doc)=cleaning_docs(splitted_doc)
-    
     logger.info("Adding: "+key+" to Chroma Vector Database")
     #uuids = [str(uuid4()) for _ in range(len(splitted_doc))]
+    #print("After: ")
+    #print(splitted_doc)
     vectordb.add_documents(documents=splitted_doc, ids=ids)
     logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
     return ids
@@ -222,6 +237,7 @@ def query_vdb(query,mode="similarity",top_result=2):
         #print(title_str)
         title_str= title_str[:-3]
         source=title_str+", "+url_str+", "+ver_str
+        #print(res)
         datas[index]="source: "+str(source)+"\nresult: "+res.page_content
         #print("source: "+res.metadata['url']+"\nresult: "+res.page_content)
     for data in datas.values():
@@ -264,10 +280,11 @@ def vdb_init(check):
 #    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides"]
     nso_vers=config["doc_vers"]
     for ver in nso_vers:
+        logger.info("Loading NSO "+str(ver)+" documentation")
         if ver == "latest":
-            url_nav=[f"https://cisco-tailf.gitbook.io/nso-docs/guides",f"https://cisco-tailf.gitbook.io/nso-docs/developers"]
+            url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/"]
         else:
-            url_nav=[f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}"]
+            url_nav=[f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         if check:
@@ -323,16 +340,17 @@ def schedule_update():
 
 if __name__=="__main__":
     #vdb_init(True)
-    #manager = Manager()
-    #global database
-    #database=load_database(manager)
-    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section3"])
-    #urls=['https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section3','https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.1/resources/index/section5','https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5']
-    query="Which JDK version should I use for NSO 6.1?"
-    data=query_vdb(query,top_result=2)
-    #data=langchain_query(urls,query)
-    print("===========Return Data=====================")
-    print(data)
-    print("================================")
+
+    database={}
+    contents={}
+    nso_ver="latest"
+    add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/applications-in-nso"])
+
+
+    #query="Which JDK version should I use for NSO 6.1?"
+    #data=query_vdb(query,top_result=2)
+    #print("===========Return Data=====================")
+    #print(data)
+    #print("================================")
 
     
