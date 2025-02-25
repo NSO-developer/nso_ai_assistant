@@ -188,7 +188,7 @@ def main(msg,cache,cec_in=""):
       elif config["com_int"] == "webex":
         send(f"Hi {cec_in}. Let me think.....",cec=cec_in)
       start = time.time()
-      hist=mem_retrive(cec_in,msg,count=4)
+      hist=mem_retrive(cec_in,msg,count=2)
       response=handler(hist,msg,config)
       mem_add(cec_in,msg,response)
       #print("response1:" + response)
@@ -200,7 +200,7 @@ def main(msg,cache,cec_in=""):
       elif config["com_int"] == "webex":
          send(f"Hi {cec_in}. Let me try to craft your code.....", cec=cec_in)
       logger.info("Preparing Cache")
-      hist=mem_retrive(cec_in,msg,count=4)
+      hist=mem_retrive(cec_in,msg,count=2)
       response=code_gen_handler(hist,msg,cache,config)
       mem_add(cec_in,msg,response)
       end = time.time()
