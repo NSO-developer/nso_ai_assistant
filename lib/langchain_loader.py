@@ -161,7 +161,7 @@ def splitter_document(url,contents,nso_ver):
             data.metadata['url']=url
             data.metadata['NSO Version']=nso_ver
             #print(data)
-    print(html_header_splits)
+    #print(html_header_splits)
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
     save_database(url)
