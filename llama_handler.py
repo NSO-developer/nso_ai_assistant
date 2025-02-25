@@ -234,8 +234,12 @@ if __name__=="__main__":
     logger.info("Deploy mode: "+ config['deploy_mode'])
     schedule_update()
     print("Initializing.......Done")
-    cec_in = input('AI>\nBefore we start, please let me know who you are. What is your Username?\nUser>\n')
+
+    cec_in=""
+    while len(cec_in) == 0:
+      cec_in = input('AI>\nBefore we start, please let me know who you are. What is your Username?\nUser>\n')
     print(f"Hi {cec_in}. What can I help you about Cisco NSO today?")
+
     while True:
       msg = input(f'\n{cec_in}>\n')
       if len(msg)==0:
