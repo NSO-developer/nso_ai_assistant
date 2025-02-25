@@ -148,19 +148,25 @@ def splitter_document(url,contents,nso_ver):
         html_header_splits=web_splitter(url)
     #print(html_header_splits)
     header1=None
+    hearder_obj=None
+    header2_checker=False
     for data in html_header_splits:
         if len(data.metadata) > 0:
             if 'Header 1' in data.metadata.keys() and 'Header 2' not in data.metadata.keys() :
                 #print("header 1 only:"+str(data)+" url: "+str(url))
+                hearder_obj=data
                 header1=data.metadata['Header 1']
                 html_header_splits.remove(data)
+            elif 'Header 2' in data.metadata.keys() :
+                header2_checker=True
             else:
                 data.metadata['Header 1']=header1
                 #print("header 1 and others:"+str(data))
                 #print(data)
             data.metadata['url']=url
             data.metadata['NSO Version']=nso_ver
-            #print(data)
+    if not header2_checker: 
+        html_header_splits.append(hearder_obj)
     #print(html_header_splits)
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
@@ -182,8 +188,11 @@ def add_vector_database(key,splitted_doc):
     #uuids = [str(uuid4()) for _ in range(len(splitted_doc))]
     #print("After: ")
     #print(splitted_doc)
-    vectordb.add_documents(documents=splitted_doc, ids=ids)
-    logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
+    if len(splitted_doc) > 0:
+        vectordb.add_documents(documents=splitted_doc, ids=ids)
+        logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
+    else:
+        logger.error("Adding: "+key+" to Chroma Vector Database - ERROR(doc is empty). Hash: "+ str(ids))
     return ids
 
 
@@ -344,7 +353,7 @@ if __name__=="__main__":
     database={}
     contents={}
     nso_ver="latest"
-    add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/applications-in-nso"])
+    add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
 
 
     #query="Which JDK version should I use for NSO 6.1?"
