@@ -146,6 +146,8 @@ def splitter_document(url,contents,nso_ver):
     except:
         html_header_splits=web_splitter(url)
     for data in html_header_splits:
+        if len(data.metadata) > 0:
+            data.metadata['url']=url
         data.metadata['NSO Version']=nso_ver
         #print(data)
     contents[url]=html_header_splits
@@ -156,11 +158,6 @@ def splitter_document(url,contents,nso_ver):
 
 def add_vector_databases(splitted_docs):
     for key,content in splitted_docs.items():
-        for docs in content:
-            #logger.info("before docs: "+str(docs))
-            if len(docs.metadata) > 0:
-                docs.metadata['url']=key
-            #logger.info("after docs: "+str(docs))
         add_vector_database(key,content)
 
 def add_vector_database(key,splitted_doc):

@@ -9,5 +9,5 @@
     "doc_keepalive": 14,
     "get_content_type":"hybrid",
     "database_check_time":"01:00",
-    "doc_vers":["6.1","latest"]
+    "doc_vers":["latest"]
 }
