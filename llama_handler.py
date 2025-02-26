@@ -24,10 +24,34 @@ logger.addHandler(handler)
 config=load_config()
 
 
+def rephrase(msg,deploy="remote"):
+  messages =[
+    {
+      "role": "system",
+      "content": f'''
+      NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
+      Doc,doc and documentation is in term of NSO Gitbook Documentation.
+      '''
+    }
+  ]
+
+  messages=messages+[{
+        "role": "user",
+        "content": f'Can you rephrase and expend the question - "{msg}"? Your answre should only include the rephrased question in a string'
+      }]
+    
+  stream=llama32(messages,deploy)
+  response=get_data(stream,deploy)
+
+  data=""
+  for str in response:
+        data=data+str
+  data=data.replace("\"","")
+  return data
 
 
 
-def keyword_scrapper(msg,deploy="remote"):
+def keyword_scrapper(msg,mode,deploy="remote"):
   # messages = [
   #   {
   #     "role": "user",
@@ -41,6 +65,11 @@ def keyword_scrapper(msg,deploy="remote"):
   #     "content": f'What knowledge do you need to answer this question correctly and accuratly - "{msg}"?list the knowledge only in a string'
   #   }
   # ]
+  data_gitbook=None
+  data_langchain=None
+
+  rephrased_msg=rephrase(msg,deploy="remote")
+  logger.info(f"Rephrased qestion - {rephrased_msg}")
 
   messages =[
     {
@@ -51,19 +80,36 @@ def keyword_scrapper(msg,deploy="remote"):
       '''
     }
   ]
-  messages=messages+[{
-      "role": "user",
-      "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{msg}"? Only provide your best choice.'
-    }]
-  
-  stream=llama32(messages,deploy)
-  response=get_data(stream,deploy)
 
-  data=""
-  for str in response:
-     data=data+str
-  #print(data)
-  return data
+  if mode == "gitbook_search":
+    messages=messages+[{
+        "role": "user",
+        "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{rephrased_msg}"? Only provide your best choice.'
+      }]
+    stream=llama32(messages,deploy)
+    response=get_data(stream,deploy)
+
+    data_gitbook=""
+    for str in response:
+      data_gitbook=data_gitbook+str      
+
+  elif mode == "langchain_rag":
+    data_langchain=rephrased_msg
+  elif mode == "hybrid":
+    messages1=messages+[{
+        "role": "user",
+        "content": f'What keyword would you use to search on the searching engine in NSO Gitbook Guide to answer the following question accuratly - "{rephrased_msg}"? Only provide your best choice.'
+      }]
+       
+    stream=llama32(messages1,deploy)
+    response=get_data(stream,deploy)
+
+    data_gitbook=""
+    for str in response:
+      data_gitbook=data_gitbook+str
+    data_langchain=rephrased_msg
+  data_gitbook=data_gitbook.replace("\"","")
+  return (data_gitbook,data_langchain)
 
 
 def define_purpose(msg,deploy="remote"):
@@ -92,11 +138,11 @@ def handler(history,msg,config):
   #print(messages)
   
   logger.info("Getting keyword")
-  keyword=keyword_scrapper(msg,config['deploy_mode'])
-  logger.info("Keyword: "+keyword)
+  (data_gitbook,data_langchain)=keyword_scrapper(msg,config['get_content_type'],config['deploy_mode'])
+  logger.info("Keyword: "+str((data_gitbook,data_langchain)))
 
   logger.info("Searching Gitbook")
-  search_result = search(keyword,q=msg)
+  search_result = search((data_gitbook,data_langchain),q=msg)
   logger.info("Searching Gitbook Done")
   logger.info("Gitbook Content: "+search_result)
 

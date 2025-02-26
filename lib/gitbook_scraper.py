@@ -316,8 +316,8 @@ def query_filter(query):
         out=query
     return out
 
-def search(query,top_result=2,q=None):
-    query=query.lower()
+def search(querys,top_result=2,q=None):
+    
     top_result_i=top_result//2
 
     if top_result_i*2 != top_result:
@@ -326,11 +326,19 @@ def search(query,top_result=2,q=None):
     else:
         top_result_gitbook=top_result_i
         top_result_rag=top_result_i
-    query=query_filter(query)
+    new_querys=[]
+    for q1 in querys:
+        if q1:
+            q1=q1.lower()
+            new_querys.append(query_filter(q1))
+    [data_gitbook,data_langchain]=new_querys
+
     content=""
     if config["get_content_type"] == "gitbook_search":
+        query=data_gitbook
         content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
+        query=data_langchain
         if q:
             input_data=q
         else:
@@ -338,6 +346,7 @@ def search(query,top_result=2,q=None):
         content=query_vdb(input_data,top_result=top_result+1)
     elif config["get_content_type"] == "hybrid":
         try:
+            query=data_gitbook
             content=gitbook_query(query,top_result=top_result_gitbook)
             logger.info("gitbook_query Get Content - SUCCESS")
         except:
@@ -349,7 +358,7 @@ def search(query,top_result=2,q=None):
         if q:
             input_data=q
         else:
-            input_data=query
+            input_data=data_langchain
         content=content+query_vdb(input_data,top_result=top_result_rag)
         #print(content)
         logger.info("query_vdb Get Content - SUCCESS")
