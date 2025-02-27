@@ -34,6 +34,7 @@ def ollama32(msg, model_name):
 
 def print_data(response):
   print("\nAI> "+str(response), flush=True)
+  return response
 
   
 
@@ -42,4 +43,6 @@ def get_data(stream):
   if len(stream['message']['content'])>0:
     return stream['message']['content']
   else:
-    return "Error: AI provide empty reply"
+    print(stream)
+    raise Exception("Error: AI provide empty reply")
+    #return "Error: AI provide empty reply"

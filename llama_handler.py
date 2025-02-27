@@ -68,7 +68,7 @@ def keyword_scrapper(msg,mode,deploy="remote"):
   data_gitbook=None
   data_langchain=None
 
-  rephrased_msg=rephrase(msg,deploy="remote")
+  rephrased_msg=rephrase(msg,deploy=deploy)
   logger.info(f"Rephrased qestion - {rephrased_msg}")
 
   messages =[
@@ -108,7 +108,8 @@ def keyword_scrapper(msg,mode,deploy="remote"):
     for str in response:
       data_gitbook=data_gitbook+str
     data_langchain=rephrased_msg
-  data_gitbook=data_gitbook.replace("\"","")
+  if data_gitbook:
+    data_gitbook=data_gitbook.replace("\"","")
   return (data_gitbook,data_langchain)
 
 
@@ -116,7 +117,7 @@ def define_purpose(msg,deploy="remote"):
   messages = [
     {
       "role": "user",
-      "content": f'Define if this question is a general question or request a code generation  - {msg}. Do not analyze and explain, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation'
+      "content": f'Define if this question is a general question or request a code generation  - {msg}. Your answer should not provide any Explanation, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation'
     }
   ]
   
@@ -124,7 +125,8 @@ def define_purpose(msg,deploy="remote"):
   response=get_data(stream,deploy)
   data=""
   for str in response:
-     data=data+str
+     if str.isnumeric():
+      data=data+str
   #print(data)
   return data
 
@@ -194,7 +196,7 @@ def handler(history,msg,config):
       search_result = query_vdb(msg,top_result=2)
     else:
       logger.info("Retry with only 1 top result")
-      search_result = search(keyword,top_result=1)
+      search_result = search((data_gitbook,data_langchain),top_result=1)
     systemPrompt = f'''
     {general}
 
@@ -259,16 +261,15 @@ def main(msg,cache,cec_in=""):
     #print("msg:" + msg)
     #print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
+    #print(response)
     url_response=urllib.parse.quote_plus(response)
 
     finish_text=f'''
       \nAverage execution time: {end - start}
       \nI did not do well? Leave me a [Feedback](https://github.com/NSO-developer/nso_ai_assistant/issues/new?title=Inaccurate%20Answer%20from%20AI&body=**Question**%0A{url_msg}%0A%0A**Answer%20from%20AI**%0A{url_response}%0A%0A**Expected%20Answer(Optional)**%0A{comment}&labels[]=bug) on Github 
       '''
-    if len(cec_in) == 0:
-      print(finish_text)
-    else:
-      return response + f'\n\nAverage execution time: {end - start}'
+    print(finish_text)
+    return response + f'\n\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
     global cache
