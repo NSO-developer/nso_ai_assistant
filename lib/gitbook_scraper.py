@@ -331,6 +331,9 @@ def search(querys,top_result=2,q=None):
         if q1:
             q1=q1.lower()
             new_querys.append(query_filter(q1))
+        else:
+            new_querys.append(q1)
+    #print(new_querys)
     [data_gitbook,data_langchain]=new_querys
 
     content=""

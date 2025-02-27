@@ -109,7 +109,7 @@ def print_data(response, deploy="remote",intf="cli"):
             out=out+chunk
             print(chunk or "", end="", flush=True)
     else:
-      ollama_print_data(response)
+      out=ollama_print_data(response)
   elif intf=="webex":
     out=""
     if deploy == "remote":

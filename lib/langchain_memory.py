@@ -39,13 +39,16 @@ def load_config():
   return data
 
 config=load_config()
+url=os.environ['OLLAMA_URL']
+ollama_url=f'{url}'
 
 if config["deploy_mode"]=="remote":
     from langchain_huggingface import HuggingFaceEmbeddings
     embeddings = HuggingFaceEmbeddings(model_name=config["embedding_model"])
 elif config["deploy_mode"]=="local":
     from langchain_ollama import OllamaEmbeddings
-    embeddings = OllamaEmbeddings(model=config["embedding_model"])
+    embeddings = OllamaEmbeddings(base_url=ollama_url,model=config["embedding_model"])
+
 else:
     logger.error("Wrong deploy_mode!")
 
