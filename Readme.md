@@ -84,7 +84,7 @@ When starting up the agent, the code will load various version of NSO Gitbook do
 
 ### CLI - "com_int":"cli"
 
-#### Online Model - llama3.3 70B use together.ai
+#### Online Model
 * Fill in the API keys in start.sh
 ```
 export TOGETHER_API_KEY=""
@@ -98,7 +98,7 @@ sh start.sh --cli
 ```
 
 
-#### Offline Model - llama3.1 8B
+#### Offline Model
 
 * Deploy offline model
 ```
@@ -117,7 +117,7 @@ systemctl start ollama
 ```
 * Modify client API by providing Ollama server contact detail in start.sh
 ```
-export OLLAMA_URL="<Ollama URL>"
+export OLLAMA_URL="<Ollama URL>" #for example - "http://1.8.0.2:11434"
 ```
 OLLAMA_URL is the remote address of the Ollama instance. This field is not needed if the "deploy_mode" set as "remote". You can leave it as a empty string.
 
