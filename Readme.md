@@ -26,13 +26,11 @@ To compare our design with more general approach like AnythingLLM, we also provi
 ## Pre-requisition
 * Chat Model Requirment: 
     * llama3.3 70B(Recommend) llama3.1 7B(Entry Requirment but with slow reply speed and instability answer)  
-        * llama3.3 70B use together.ai - meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
-        * llama3.1 7B offline model with ollama and AnythingLLM
     * Deepseek is not supported since it complicated task some time. 
 * Embedded Model Requirment
     * By default, the repository is built and tested with "sentence-transformers/all-mpnet-base-v2". We also recommend to use this one from Huggingface
-* Hardware Requirment on AI Model Server(if deploy localy)
-    * llama3.3 70B - Min 64gb RAM + RTX 4090. Recommend 128gb RAM + RTX4090 * 2
+* Hardware Requirment on AI Model Server(if deploy localy with Ollama)
+    * llama3.3 70B - Min 128gb RAM + RTX 3070. Recommend 128gb RAM + RTX4090 * 2
     * llama3.1 7B - Min 64gb RAM + RTX3070. Recommend 128gb RAM + RTX3070
     The lack of physical RAM can be compensate by GPU vRAM. Lacking of memory will triger OOM and cause AI model reply empty content. 
 * Take in mind that this code use Selenium with Chrome as driver to scrap the gitbook search feature(Not gitbook AI). This might violet some security regulation for some orgnization. 
@@ -43,7 +41,7 @@ If you want to use the alternative approach compare the result with our version 
 
 ## Test Enviorment
 * Linux Ubuntu 24
-* Python 3.9.21 / Python 3.13
+* Python 3.9.21 / Python 3.11
 * AI Chat Model - Together.ai "meta-llama/llama-3.3-70B-Instruct-Turbo-Free"
 * Embedder for LangChain RAG - HuggingFace "sentence-transformers/all-mpnet-base-v2"
 
