@@ -43,26 +43,18 @@ else:
 model_name=config['model_name']
 
 
-def tavily(msg): 
+def tavily(msg,extra_domain=[]): 
   response = tavily_client.search(
         query=msg,
-        include_domains=["https://cisco-tailf.gitbook.io/nso-docs","*.cisco.com"]
+        include_domains=["https://cisco-tailf.gitbook.io/nso-docs","https://www.cisco.com/"]+extra_domain,
+        include_answer="basic",
+        max_results=2
     )
-  # if config['get_content_type'] == "gitbook_search":
-  #   response = tavily_client.search(
-  #       query=msg,
-  #       include_domains=["https://cisco-tailf.gitbook.io/nso-docs","*.cisco.com"]
-  #   )
-  # elif config['get_content_type'] == "langchain_rag":
-  #   response = tavily_client.search(
-  #       query=msg
-  #   )
-  # else:
-  #       response = tavily_client.search(
-  #       query=msg
-  #   )
   if len(response["results"]) > 0:
-    text="source: "+response["results"][0]["url"]+"\nresult: "+response["results"][0]["content"]
+    for results in response["results"]:
+      text="source: "+results["url"]+"\nresult: "+results["content"]
+    answer=response["answer"]
+    text=text+"\n"+answer
   else:
     text=None
   return text

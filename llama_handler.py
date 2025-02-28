@@ -52,19 +52,6 @@ def rephrase(msg,deploy="remote"):
 
 
 def keyword_scrapper(msg,mode,deploy="remote"):
-  # messages = [
-  #   {
-  #     "role": "user",
-  #     "content": f'what is the keyword of the question without verb - "{msg}"? list the keyword only in a string'
-  #   }
-  # ]
-
-  # messages = [
-  #   {
-  #     "role": "user",
-  #     "content": f'What knowledge do you need to answer this question correctly and accuratly - "{msg}"?list the knowledge only in a string'
-  #   }
-  # ]
   data_gitbook=None
   data_langchain=None
 
@@ -130,6 +117,76 @@ def define_purpose(msg,deploy="remote"):
   #print(data)
   return data
 
+
+def process_val_result(search_result,val_results):
+  split_context=search_result.split("\n\n")
+  for result in val_results:
+      if result["relevant_DEF"] == 'False' or result["relevant_DEF"] == False :
+        i=0
+        for context in  split_context:
+          #logger.info(f'checking {result["irrelvant_context_url"]} in {context}')
+          if result["irrelvant_context_url"] in context:
+            logger.info(f'{result["irrelvant_context_url"]} is invalid. Query again with Tavily')
+            for query in result["other_context"]:
+               logger.info(f"Trying to get extra query - {query}")
+               split_context[i]=tavily(query,["https://datatracker.ietf.org/"])
+          i+=1
+  out=""
+  for data in split_context:
+     out=out + data + "\n\n"
+  return out
+             
+        
+         
+
+
+
+def context_validation(search_result,query):
+  general='''
+    You are a Cisco NSO Expert that define if the context provided below is good enough to answer the Cisco NSO related question. If not, you will mention what other context is required.
+    Answer the question with the following variables per context.    
+    relevant_DEF - "True" if it is relevant, "False" if not
+    irrelvant_context_url - url as a string that is irrelevant. If the relevant = True, this field is None.
+    other_context - list of extra context that needed to answer the current question. If the relevant = True, this field is None.
+
+    You will construct your answer as JSON format. Inside the JSON is a list per conext. 
+    Do not answer anything else than the JSON String. 
+    '''
+  systemPrompt = f'''
+    {general}
+
+    Here are the set of contexts:
+
+    <contexts>
+    {search_result}
+    </contexts>
+  `;
+  '''
+
+  messages = [
+    {
+      "role": "user",
+      "content": f'''
+      Define if the context provided is relavant to answer of the question - "{query}"? 
+      '''
+    }
+  ]
+  messages.append({
+                    "role": "system",
+                    "content": systemPrompt,
+                })
+
+  stream=llama32(messages,config['deploy_mode'])
+  response=get_data(stream,config['deploy_mode'])
+  out=""
+  for chunk in response:
+      out=out+chunk
+  return  json.loads(out)
+
+
+
+
+
 def handler(history,msg,config):
   messages = history+[
     {
@@ -144,11 +201,18 @@ def handler(history,msg,config):
   logger.info("Keyword: "+str((data_gitbook,data_langchain)))
 
   logger.info("Searching Gitbook")
-  search_result = search((data_gitbook,data_langchain),q=msg)
+  search_result_orig = search((data_gitbook,data_langchain),q=msg)
   logger.info("Searching Gitbook Done")
-  logger.info("Gitbook Content: "+search_result)
+  logger.info("Gitbook Content: "+search_result_orig)
 
 
+  logger.info("Validating context extracted")
+  val_result=context_validation(search_result_orig,msg)
+  logger.info(f"Validating context extracted Done - {val_result}")
+
+  logger.info("Act on Validating context result")
+  search_result=process_val_result(search_result_orig,val_result)
+  logger.info(f"Act on Validating context result Done - {search_result}")
 
   general='''
     You are a Cisco NSO Expert that answer Cisco NSO related question with the help of the context provided. 
@@ -185,7 +249,8 @@ def handler(history,msg,config):
                       "content": toolPrompt,
                   })
   try:
-    logger.info("AI creating answer based on context")
+    stream=llama32(messages,config['deploy_mode'])
+    logger.info(f"AI creating answer based on context - {messages}")
     stream=llama32(messages,config['deploy_mode'])
     logger.info("AI creating answer based on context Done")
   except:
@@ -193,10 +258,15 @@ def handler(history,msg,config):
     logger.error("Error detected when trying to fetch answer from AI")
     if config["get_content_type"] == "hybrid":
       logger.info("Retry with Langchain 2 top result")
-      search_result = query_vdb(msg,top_result=2)
+      search_result_orig = query_vdb(msg,top_result=2)
     else:
       logger.info("Retry with only 1 top result")
-      search_result = search((data_gitbook,data_langchain),top_result=1)
+      search_result_orig = search((data_gitbook,data_langchain),top_result=1)
+
+    logger.info("Act on Validating context result")
+    search_result=process_val_result(search_result_orig,val_result)
+    logger.info(f"Act on Validating context result Done - {search_result}")
+
     systemPrompt = f'''
     {general}
 
@@ -237,6 +307,7 @@ def main(msg,cache,cec_in=""):
         send(f"Hi {cec_in}. Let me think.....",cec=cec_in)
       start = time.time()
       hist=mem_retrive(cec_in,msg,count=2)
+      logger.info(f"memory retrived - {hist}")
       response=handler(hist,msg,config)
       mem_add(cec_in,msg,response)
       #print("response1:" + response)
@@ -249,6 +320,7 @@ def main(msg,cache,cec_in=""):
          send(f"Hi {cec_in}. Let me try to craft your code.....", cec=cec_in)
       logger.info("Preparing Cache")
       hist=mem_retrive(cec_in,msg,count=2)
+      logger.info(f"memory retrived - {hist}")
       response=code_gen_handler(hist,msg,cache,config)
       mem_add(cec_in,msg,response)
       end = time.time()
