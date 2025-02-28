@@ -180,7 +180,8 @@ def context_validation(search_result,query):
   response=get_data(stream,config['deploy_mode'])
   out=""
   for chunk in response:
-      out=out+chunk
+      if "```" not in chunk and "json" not in chunk  :
+        out=out+chunk
   return  json.loads(out)
 
 
