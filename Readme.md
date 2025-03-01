@@ -16,9 +16,10 @@ To compare our design with more general approach like AnythingLLM, we also provi
 
 <img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png" alt="NSO AI Pipeline Design" width="800" height="600">
 
-## Available Feature and Known Issue
+## Available Feature and Limitations
 * Answer NSO related question that has been specified in the Gitbook
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
+* Only support Webex direct message for now. Group message is not supported.
 
 ## Pros and Cons  
 ![Pros and Cons](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png)
