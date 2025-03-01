@@ -190,12 +190,13 @@ def context_validation(search_result,query):
 
 
 def handler(history,msg,config):
-  messages = history+[
+  history.append(
     {
       "role": "user",
       "content": msg
     }
-  ]
+  )
+  messages = history
   #print(messages)
   
   logger.info("Getting keyword")
@@ -233,7 +234,7 @@ def handler(history,msg,config):
   `;
   '''
   messages_backup=messages.copy()
-  messages.append({
+  messages.insert(0,{
                     "role": "system",
                     "content": systemPrompt,
                 })
@@ -246,7 +247,7 @@ def handler(history,msg,config):
 
   if toolPrompt:
     logger.info("Tavily return useful result. Support enabled. - "+ toolPrompt)
-    messages.append({
+    messages.insert(1,{
                       "role": "tool",
                       "content": toolPrompt,
                   })
@@ -279,7 +280,7 @@ def handler(history,msg,config):
     </contexts>
     `;
     '''
-    messages_backup.append({
+    messages_backup.insert(0,{
                     "role": "system",
                     "content": systemPrompt,
                 })
