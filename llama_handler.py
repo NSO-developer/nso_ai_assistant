@@ -212,7 +212,8 @@ def handler(msgs):
         "role": "assistant",
         "content": human_msg.content
       })
-  
+  msg=msgs[-1].content
+  print(msg)
   logger.info("Getting keyword")
   (data_gitbook,data_langchain)=keyword_scrapper(msg,config['get_content_type'],config['deploy_mode'])
   logger.info("Keyword: "+str((data_gitbook,data_langchain)))
