@@ -94,6 +94,8 @@ def recv():
 
 
 if __name__ == '__main__':
+        print("Initializing.......")
+
         print()
         global cache
         cache=code_gen_cache()
@@ -113,8 +115,10 @@ if __name__ == '__main__':
                 exit(1)
             else:
                 print("Oauth token exist: "+token)
-                
+            
             schedule_update()
+            print("Initializing.......Done")
+
             print("Server Up and waiting for request")
             from waitress import serve
             serve(app, host="0.0.0.0", port=7001)
