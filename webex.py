@@ -64,9 +64,10 @@ def recv():
             logger.info("Access Denied from user - "+str(email))
             return "ACCESS DENINED"
        
-        name_url = " https://webexapis.com/v1/people?" + cec+"%40"+email_previx
+        name_url = " https://webexapis.com/v1/people?email=" + cec+"%40"+email_previx
         api_name_response = requests.get(name_url, headers=header, verify=False)
         response_name_json = api_name_response.json()
+        #print(response_name_json)
         name = response_name_json["items"][0]["firstName"]
 
 
@@ -95,7 +96,6 @@ def recv():
 
 if __name__ == '__main__':
         logger.info("Initializing.......")
-        print("Initializing.......")
 
         print()
         global cache
@@ -118,9 +118,7 @@ if __name__ == '__main__':
                 print("Oauth token exist: "+token)
             
             schedule_update()
-            print("Initializing.......Done")
-
-            print("Server Up and waiting for request")
+            logger.info("Initializing.......Done")
             logger.info("Server Up and waiting for request")
             from waitress import serve
             serve(app, host="0.0.0.0", port=7001)

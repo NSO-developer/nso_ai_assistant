@@ -12,11 +12,11 @@ export TOKENIZERS_PARALLELISM=true
 
 if [ "$1" == "--webhook_reg" ]
   then 
-  python webex.py --webhook_reg $OLLAMA_URL
+  python -u  webex.py --webhook_reg $OLLAMA_URL
 elif [ "$1" == "--webex" ]
   then 
-  python webex.py
+  python -u webex.py
 elif [ "$1" == "--cli" ]
   then 
-  python llama_handler.py
+  python -u llama_handler.py
 fi
