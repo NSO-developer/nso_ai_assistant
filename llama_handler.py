@@ -132,7 +132,7 @@ def process_val_result(search_result,val_results):
         for context in  split_context:
           #logger.info(f'checking {result["irrelvant_context_url"]} in {context}')
           if result["irrelvant_context_url"] in context:
-            logger.info(f'{result["irrelvant_context_url"]} is invalid. Query again with Tavily')
+            logger.info(f'{result["irrelvant_context_url"]} is invalid. Query again with max_marginal_relevance inside RAG')
             for query in result["other_context"]:
                if query.strip().lower() not in q_set:
                   logger.info(f"Trying to get extra query - {query}")
