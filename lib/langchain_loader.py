@@ -236,6 +236,7 @@ def query_vdb(query,mode="similarity",top_result=2):
         results=vectordb.max_marginal_relevance_search(query,k=top_result)
     #print(str(results))
     for res in results:
+        logger.info("Result obtained from vdb: "+str(res))
         index=""
         for key,title in res.metadata.items():
             index=index+title+"-"
@@ -257,6 +258,8 @@ def query_vdb(query,mode="similarity",top_result=2):
         source=title_str+", "+url_str+", "+ver_str
         #print(res)
         datas[index]="source: "+str(source)+"\nresult: "+res.page_content
+        logger.info("Result obtained from vdb - Loaded: "+str(res))
+
         #print("source: "+res.metadata['url']+"\nresult: "+res.page_content)
     for data in datas.values():
         out=out+data+"\n\n"
