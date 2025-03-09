@@ -13,3 +13,4 @@ langchain_ollama==0.2.3
 langchain_core==0.3.33
 chromadb==0.6.3
 schedule==1.2.2
+langgraph

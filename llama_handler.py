@@ -9,7 +9,11 @@ from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
 from lib.langchain_memory import mem_retrive,mem_add
-
+from langchain_together import ChatTogether,Together
+from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+import uuid
 import traceback
 
 
@@ -22,6 +26,8 @@ logger.addHandler(handler)
 
 
 config=load_config()
+
+cache=None
 
 
 def rephrase(msg,deploy="remote"):
@@ -189,15 +195,25 @@ def context_validation(search_result,query):
 
 
 
-def handler(history,msg,config):
-  history.append(
-    {
-      "role": "user",
-      "content": msg
-    }
-  )
-  messages = history
-  #print(messages)
+def handler(msgs):
+  messages=[]
+  #[HumanMessage(content='What is CDB', additional_kwargs={}, response_metadata={}, id='430b76f7-8a0e-4dfa-9670-8c8dc39b1a1e')]
+  for human_msg in msgs:
+    if isinstance(human_msg, HumanMessage):
+      messages.append({
+        "role": "user",
+        "content": human_msg.content
+      })
+    elif isinstance(human_msg, SystemMessage):
+      messages.append({
+        "role": "system",
+        "content": human_msg.content
+      })
+    elif isinstance(human_msg, AIMessage):
+      messages.append({
+        "role": "assistant",
+        "content": human_msg.content
+      })
   
   logger.info("Getting keyword")
   (data_gitbook,data_langchain)=keyword_scrapper(msg,config['get_content_type'],config['deploy_mode'])
@@ -301,31 +317,64 @@ def load_config():
   return data
 
 
-def main(msg,cache,cec_in=""):
+
+def query_callback(state: MessagesState):
+    response=handler(state["messages"])
+    out=AIMessage(content=response, additional_kwargs={'refusal': None}, response_metadata={'token_usage': {'completion_tokens': 0, 'prompt_tokens': 0, 'total_tokens': 0, 'completion_tokens_details': {'reasoning_tokens': 0}}, 'model_name': config["model_name"], 'system_fingerprint': '0', 'finish_reason': 'stop', 'logprobs': None}, id=uuid.uuid4().hex, usage_metadata={'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0})
+    return {"messages":out}
+
+
+def query_callback_code(state: MessagesState):
+    response=code_gen_handler(state["messages"],cache)
+    out=AIMessage(content=response, additional_kwargs={'refusal': None}, response_metadata={'token_usage': {'completion_tokens': 0, 'prompt_tokens': 0, 'total_tokens': 0, 'completion_tokens_details': {'reasoning_tokens': 0}}, 'model_name': config["model_name"], 'system_fingerprint': '0', 'finish_reason': 'stop', 'logprobs': None}, id=uuid.uuid4().hex, usage_metadata={'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0})
+    return {"messages":out}
+
+memory = MemorySaver()
+
+workflow = StateGraph(state_schema=MessagesState)
+workflow.add_node("model", query_callback)
+workflow.add_edge(START, "model")
+app = workflow.compile(checkpointer=memory)
+
+
+workflow_code = StateGraph(state_schema=MessagesState)
+workflow_code.add_node("model", query_callback_code)
+workflow_code.add_edge(START, "model")
+app_code = workflow_code.compile(checkpointer=memory)
+
+def main(msg,cache_in,cec_in=""):
+    cache=cache_in
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
       if config["com_int"] == "cli":
          print("AI> \nSeems like you want some answer on general question. Let me think.....")           
       elif config["com_int"] == "webex":
         send(f"Hi {cec_in}. Let me think.....",cec=cec_in)
+
       start = time.time()
-      hist=mem_retrive(cec_in,msg,count=2)
-      logger.info(f"memory retrived - {hist}")
-      response=handler(hist,msg,config)
-      mem_add(cec_in,msg,response)
+      messages =  [HumanMessage(content=msg)]
+      response=app.invoke(
+          {"messages": messages},
+          config={"configurable": {"thread_id": cec_in}},
+
+      )
+
       #print("response1:" + response)
       end = time.time()
     elif purpose == 2 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
-      start = time.time()
       if config["com_int"] == "cli":
          print("AI> \nSeems like you want to generate some code. Let me think.....")
       elif config["com_int"] == "webex":
          send(f"Hi {cec_in}. Let me try to craft your code.....", cec=cec_in)
-      logger.info("Preparing Cache")
-      hist=mem_retrive(cec_in,msg,count=2)
-      logger.info(f"memory retrived - {hist}")
-      response=code_gen_handler(hist,msg,cache,config)
-      mem_add(cec_in,msg,response)
+
+      start = time.time()
+
+      messages =  [HumanMessage(content=msg)]
+      response=app_code.invoke(
+          {"messages": messages},
+          config={"configurable": {"thread_id": cec_in}},
+
+      )
       end = time.time()
     else:
       response=""
@@ -336,18 +385,18 @@ def main(msg,cache,cec_in=""):
     #print("msg:" + msg)
     #print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
-    #print(response)
-    url_response=urllib.parse.quote_plus(response)
+    url_response=urllib.parse.quote_plus(str(response))
+    result=response['messages'][-1].content
+
 
     finish_text=f'''
       \nAverage execution time: {end - start}
       \nI did not do well? Leave me a [Feedback](https://github.com/NSO-developer/nso_ai_assistant/issues/new?title=Inaccurate%20Answer%20from%20AI&body=**Question**%0A{url_msg}%0A%0A**Answer%20from%20AI**%0A{url_response}%0A%0A**Expected%20Answer(Optional)**%0A{comment}&labels[]=bug) on Github 
       '''
     print(finish_text)
-    return response + f'\n\nAverage execution time: {end - start}'
+    return result + f'\n\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
-    global cache
     print("Initializing.......")
     cache=code_gen_cache()
     if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
