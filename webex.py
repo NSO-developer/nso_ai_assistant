@@ -94,6 +94,7 @@ def recv():
 
 
 if __name__ == '__main__':
+        logger.info("Initializing.......")
         print("Initializing.......")
 
         print()
@@ -120,5 +121,6 @@ if __name__ == '__main__':
             print("Initializing.......Done")
 
             print("Server Up and waiting for request")
+            logger.info("Server Up and waiting for request")
             from waitress import serve
             serve(app, host="0.0.0.0", port=7001)
