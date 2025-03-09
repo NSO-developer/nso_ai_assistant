@@ -125,7 +125,7 @@ def define_purpose(msg,deploy="remote"):
 def process_val_result(search_result,val_results):
   split_context=search_result.split("\n\n")
   for result in val_results:
-      if result["relevant_DEF"] == 'False' or result["relevant_DEF"] == False :
+      if (result["relevant_DEF"] == 'False' or result["relevant_DEF"] == False) and "section5#ncs.conf" not in result["irrelvant_context_url"] :
         i=0
         for context in  split_context:
           #logger.info(f'checking {result["irrelvant_context_url"]} in {context}')
@@ -213,7 +213,6 @@ def handler(msgs):
         "content": human_msg.content
       })
   msg=msgs[-1].content
-  print(msg)
   logger.info("Getting keyword")
   (data_gitbook,data_langchain)=keyword_scrapper(msg,config['get_content_type'],config['deploy_mode'])
   logger.info("Keyword: "+str((data_gitbook,data_langchain)))
@@ -234,7 +233,7 @@ def handler(msgs):
 
   general='''
     You are a Cisco NSO Expert that answer Cisco NSO related question with the help of the context provided. 
-    If you find the provided context is irrelevant, please disregard the provided context and use the other context that you find that are more relevant. 
+    If you find the provided context is irrelevant, please disregard the irrelevant context and use the other context that you find that are more relevant. 
     If there are code or command example in the context that can help you answering the question, please include them into your answer. At the same time, consider all scenrio in the context.
     In the end of your answer, mention whatever source that you used to construct your answer. 
     '''
@@ -253,6 +252,7 @@ def handler(msgs):
                     "role": "system",
                     "content": systemPrompt,
                 })
+  #print(messages)
   if config['get_content_type'] !="hybrid":
     logger.info("Getting support information from Tavily for tool")
     toolPrompt=tavily(msg)  
@@ -267,7 +267,6 @@ def handler(msgs):
                       "content": toolPrompt,
                   })
   try:
-    stream=llama32(messages,config['deploy_mode'])
     logger.info(f"AI creating answer based on context - {messages}")
     stream=llama32(messages,config['deploy_mode'])
     logger.info("AI creating answer based on context Done")
@@ -319,13 +318,13 @@ def load_config():
 
 def query_callback(state: MessagesState):
     response=handler(state["messages"])
-    out=AIMessage(content=response, additional_kwargs={'refusal': None}, response_metadata={'token_usage': {'completion_tokens': 0, 'prompt_tokens': 0, 'total_tokens': 0, 'completion_tokens_details': {'reasoning_tokens': 0}}, 'model_name': config["model_name"], 'system_fingerprint': '0', 'finish_reason': 'stop', 'logprobs': None}, id=uuid.uuid4().hex, usage_metadata={'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0})
+    out=AIMessage(content=response)
     return {"messages":out}
 
 
 def query_callback_code(state: MessagesState):
     response=code_gen_handler(state["messages"],cache)
-    out=AIMessage(content=response, additional_kwargs={'refusal': None}, response_metadata={'token_usage': {'completion_tokens': 0, 'prompt_tokens': 0, 'total_tokens': 0, 'completion_tokens_details': {'reasoning_tokens': 0}}, 'model_name': config["model_name"], 'system_fingerprint': '0', 'finish_reason': 'stop', 'logprobs': None}, id=uuid.uuid4().hex, usage_metadata={'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0})
+    out=AIMessage(content=response)
     return {"messages":out}
 
 memory = MemorySaver()
@@ -382,9 +381,10 @@ def main(msg,cache_in,cec_in=""):
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     #print("msg:" + msg)
-    #print("response:" + str(response))
+    print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
     result=response['messages'][-1].content
+
     url_response=urllib.parse.quote_plus(str(result))
 
 
