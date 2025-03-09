@@ -316,7 +316,7 @@ def query_filter(query):
         out=query
     return out
 
-def search(querys,top_result=2,q=None):
+def search(querys,top_result=2):
     
     top_result_i=top_result//2
 
@@ -341,11 +341,7 @@ def search(querys,top_result=2,q=None):
         query=data_gitbook
         content=gitbook_query(query,top_result)
     elif config["get_content_type"] == "langchain_rag":
-        query=data_langchain
-        if q:
-            input_data=q
-        else:
-            input_data=query
+        input_data=data_langchain
         content=query_vdb(input_data,top_result=top_result+1)
     elif config["get_content_type"] == "hybrid":
         try:
@@ -357,12 +353,7 @@ def search(querys,top_result=2,q=None):
             logger.info("Fallback to Langchain")
             logger.error(traceback.format_exc())
             top_result_rag=top_result+1
-        #print(content)
-        if q:
-            input_data=q
-        else:
-            input_data=data_langchain
-        content=content+query_vdb(input_data,top_result=top_result_rag)
+        content=content+query_vdb(data_langchain,top_result=top_result_rag)
         #print(content)
         logger.info("query_vdb Get Content - SUCCESS")
     else:

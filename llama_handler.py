@@ -218,7 +218,7 @@ def handler(msgs):
   logger.info("Keyword: "+str((data_gitbook,data_langchain)))
 
   logger.info("Searching Gitbook")
-  search_result_orig = search((data_gitbook,data_langchain),q=msg)
+  search_result_orig = search((data_gitbook,data_langchain))
   logger.info("Searching Gitbook Done")
   logger.info("Gitbook Content: "+search_result_orig)
 
@@ -381,7 +381,7 @@ def main(msg,cache_in,cec_in=""):
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     #print("msg:" + msg)
-    print("response:" + str(response))
+    #print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
     result=response['messages'][-1].content
 
