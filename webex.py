@@ -51,22 +51,30 @@ def recv():
     #print("*****************"+str(log)+"*******************"+"\nMessage ID: "+message_id+"\nUser ID: "+user_id+"\nEmail: "+email+"\nRoom ID: "+room_id+"\n********************END********************\n\n")
     #email="leeli4@cisco.com"
     #room_id = room_id_ticket
-    if (email.split("@")[1] != "webex.bot") and (email.split("@")[1] == config["bot_email_prefix"]) :
+    email_previx=email.split("@")[1]
+    if (email_previx != "webex.bot") and (email_previx == config["bot_email_prefix"]) :
         header = {"Authorization": "Bearer %s" % token}
         get_rooms_url = "https://api.ciscospark.com/v1/messages/" + message_id
         api_response = requests.get(get_rooms_url, headers=header, verify=False)
         response_json = api_response.json()
         message = response_json["text"]
         logger.info("Receive request! - "+str(message)+" from user - "+str(cec))
-        if (email.split("@")[1] != config["bot_email_prefix"]):
+        if (email_previx != config["bot_email_prefix"]):
             send("Access Denied",cec)
             logger.info("Access Denied from user - "+str(email))
             return "ACCESS DENINED"
+       
+        name_url = " https://webexapis.com/v1/people?" + cec+"%40"+email_previx
+        api_name_response = requests.get(name_url, headers=header, verify=False)
+        response_name_json = api_name_response.json()
+        name = response_name_json["items"][0]["firstName"]
+
+
         request_body = "test"
         if (request_body):
             if mode == "nso":
                 logger.info("NSO Specific Pipeline")
-                llama_response=main(message,cache,cec_in=cec)
+                llama_response=main(message,cache,cec_in=cec,name=name)
                 logger.info("Sending request! - "+str(llama_response))
                 send(llama_response,cec)
                 creat_issue(message,llama_response,cec)

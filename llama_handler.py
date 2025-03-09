@@ -354,15 +354,14 @@ workflow_code.add_node("model", query_callback_code)
 workflow_code.add_edge(START, "model")
 app_code = workflow_code.compile(checkpointer=memory)
 
-def main(msg,cache_in,cec_in=""):
+def main(msg,cache_in,cec_in="",name=""):
     cache=cache_in
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
       if config["com_int"] == "cli":
-         print("AI> \nSeems like you want some answer on general question. Let me think.....")           
+         print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
       elif config["com_int"] == "webex":
-        send(f"Hi {cec_in}. Let me think.....",cec=cec_in)
-
+        send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)
       start = time.time()
       messages =  [HumanMessage(content=msg)]
       response=app.invoke(
@@ -377,7 +376,7 @@ def main(msg,cache_in,cec_in=""):
       if config["com_int"] == "cli":
          print("AI> \nSeems like you want to generate some code. Let me think.....")
       elif config["com_int"] == "webex":
-         send(f"Hi {cec_in}. Let me try to craft your code.....", cec=cec_in)
+         send(f"Hi {name}. Let me try to craft your code.....This might takes around 45 sec to 1 min.", cec=cec_in)
 
       start = time.time()
 
