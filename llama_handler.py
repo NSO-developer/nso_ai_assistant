@@ -8,8 +8,6 @@ import json
 from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
-from lib.langchain_memory import mem_retrive,mem_add
-from langchain_together import ChatTogether,Together
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -385,8 +383,8 @@ def main(msg,cache_in,cec_in=""):
     #print("msg:" + msg)
     #print("response:" + str(response))
     url_msg=urllib.parse.quote_plus(msg)
-    url_response=urllib.parse.quote_plus(str(response))
     result=response['messages'][-1].content
+    url_response=urllib.parse.quote_plus(str(result))
 
 
     finish_text=f'''
