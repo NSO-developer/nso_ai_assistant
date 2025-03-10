@@ -11,3 +11,5 @@ resources/vectordb/code/*
 resources/chat_mem/*
 !resources/chat_mem/.gitkeep
 nohup.out
+stats.sh
+stats.py

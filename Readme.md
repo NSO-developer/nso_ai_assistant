@@ -160,27 +160,45 @@ sh start.sh --webex
 
 ```
 User>
-What is CDB?
+AI>
+Before we start, please let me know who you are. What is your Username?
+User>
+testuser
+Hi testuser. What can I help you about Cisco NSO today?
+
+testuser>
+what is CDB
 AI> 
-Seems like you want some answer on general question. Let me think.....
+Seems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.
 
 AI> 
-CDB stands for Configuration Database, which is a built-in database in Cisco NSO (Network Services Orchestrator). The CDB is designed to store two main things: 
+The Configuration Database (CDB) in Cisco NSO is a dedicated, built-in storage for data that efficiently stores and accesses network configuration data, such as device configurations, service parameters, and even configuration for NSO itself. It functions as a central repository for storing and managing network device configurations, playing a crucial role in network automation.
 
-1. Intent: This describes what you want from the network, traditionally referred to as a network service, which is what the network ultimately provides to its users.
-2. Network state: This is a copy of the configuration of the managed devices. Knowledge of the network state is essential for correctly provisioning new services, enabling faster diagnosis of problems, and is required for advanced functionality such as self-healing.
+The CDB has several key features that make it an excellent choice for a configuration store:
 
-The CDB is a crucial component of NSO, allowing it to keep track of the desired network configuration (intent) and the actual network configuration (network state). This enables NSO to automate network configuration and management tasks.
+1. **Hierarchical database structure**: The CDB has a tree-like structure, similar to a big XML document, which allows it to store all kinds of data.
+2. **Fast and lightweight database access**: The CDB provides fast and lightweight database access through a well-defined API.
+3. **Subscription mechanism**: The CDB has a subscription ("push") mechanism for change notification, which enables real-time updates.
+4. **Transaction support**: The CDB supports transactions, ensuring data consistency and preventing data corruption.
+5. **Rich and extensible schema**: The CDB's schema is based on YANG (RFC 7950), a standard modeling language that describes constraints on the data and allows for efficient storage.
+6. **Built-in support for schema and data upgrade**: The CDB has built-in support for schema and associated data upgrade, making it easy to manage changes to the configuration.
+7. **Close integration with NSO**: The CDB is closely integrated with NSO, providing low-maintenance operation.
 
-In terms of structure, the CDB can be extended with packages, which allows users to add custom data models and functionality to NSO. For example, the `examples.ncs/getting-started/cdb-yang` package provides an example implementation of how to extend the CDB with YANG models.
+The CDB stores two primary types of data:
 
-To interact with the CDB, NSO provides various APIs and tools, such as the `ncs-run` command, which allows users to execute scripts and automate tasks on the network devices.
+1. **Intent**: The CDB stores the intent, which describes what you want from the network, traditionally referred to as a network service.
+2. **Network state**: The CDB stores a copy of the configuration of the managed devices, which represents the network state.
 
-Source:
-- https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
-- https://cisco-tailf.gitbook.io/nso-docs/guides/development/introduction-to-automation/cdb-and-yang
+By storing both intent and network state, the CDB enables correct provisioning of new services, faster diagnosis of problems, and advanced functionality like self-healing.
+
+In terms of performance, the CDB keeps a configurable amount of configuration data in RAM, in addition to persisting it to disk, which speeds up operations. The CDB also stores transient operational data, such as alarms and traffic statistics, which can be persisted to disk if required.
+
+Sources:
+
+* https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
+* Title: CDB and YANG - Key Features of the CDB (no URL provided)
       
-Average execution time: 29.175559043884277
+Average execution time: 21.693789958953857
       
 I did not do well? Leave me a [Feedback]() on Github 
 
