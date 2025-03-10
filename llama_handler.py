@@ -126,8 +126,8 @@ def process_val_result(search_result,val_results):
   q_set=[]
   split_context=search_result.split("\n\n")
   final_result=[]
+  i=0
   for result in val_results:
-      i=0
       if (result["relevant_DEF"] == 'False' or result["relevant_DEF"] == False) and "section5#ncs.conf" not in result["irrelvant_context_url"] :
         for context in  split_context:
           #logger.info(f'checking {result["irrelvant_context_url"]} in {context}')
