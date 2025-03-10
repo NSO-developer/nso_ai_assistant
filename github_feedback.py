@@ -62,4 +62,4 @@ def creat_issue(query,answer,cec):
     send_attach("test",msg,cec)
 
 if __name__=="__main__":
-    creat_issue("what is turbo-xml-mode","blahblahblah the blah","leeli4")
+    creat_issue("what is turbo-xml-mode","blahblahblah the blah","testuser")
