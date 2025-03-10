@@ -21,7 +21,58 @@ To compare our design with more general approach like AnythingLLM, we also provi
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
 * Only support Webex direct message for now. Group message is not supported.
 * Unique support hybrid context mode that use the context between Gitbook Search and Langchain Chroma RAG to provide the best result.
+## Sample Interaction
+### Webex
+<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png" alt="Webex Bot" width="500" height="800">
 
+
+### CLI
+
+```
+User>
+AI>
+Before we start, please let me know who you are. What is your Username?
+User>
+testuser
+Hi testuser. What can I help you about Cisco NSO today?
+
+testuser>
+what is CDB
+AI> 
+Seems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.
+
+AI> 
+The Configuration Database (CDB) in Cisco NSO is a dedicated, built-in storage for data that efficiently stores and accesses network configuration data, such as device configurations, service parameters, and even configuration for NSO itself. It functions as a central repository for storing and managing network device configurations, playing a crucial role in network automation.
+
+The CDB has several key features that make it an excellent choice for a configuration store:
+
+1. **Hierarchical database structure**: The CDB has a tree-like structure, similar to a big XML document, which allows it to store all kinds of data.
+2. **Fast and lightweight database access**: The CDB provides fast and lightweight database access through a well-defined API.
+3. **Subscription mechanism**: The CDB has a subscription ("push") mechanism for change notification, which enables real-time updates.
+4. **Transaction support**: The CDB supports transactions, ensuring data consistency and preventing data corruption.
+5. **Rich and extensible schema**: The CDB's schema is based on YANG (RFC 7950), a standard modeling language that describes constraints on the data and allows for efficient storage.
+6. **Built-in support for schema and data upgrade**: The CDB has built-in support for schema and associated data upgrade, making it easy to manage changes to the configuration.
+7. **Close integration with NSO**: The CDB is closely integrated with NSO, providing low-maintenance operation.
+
+The CDB stores two primary types of data:
+
+1. **Intent**: The CDB stores the intent, which describes what you want from the network, traditionally referred to as a network service.
+2. **Network state**: The CDB stores a copy of the configuration of the managed devices, which represents the network state.
+
+By storing both intent and network state, the CDB enables correct provisioning of new services, faster diagnosis of problems, and advanced functionality like self-healing.
+
+In terms of performance, the CDB keeps a configurable amount of configuration data in RAM, in addition to persisting it to disk, which speeds up operations. The CDB also stores transient operational data, such as alarms and traffic statistics, which can be persisted to disk if required.
+
+Sources:
+
+* https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
+* Title: CDB and YANG - Key Features of the CDB (no URL provided)
+      
+Average execution time: 21.693789958953857
+      
+I did not do well? Leave me a [Feedback]() on Github 
+
+```
 ## Pros and Cons  
 ![Pros and Cons](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png)
 
@@ -152,58 +203,7 @@ sh start.sh --webex
 * Find your bot on Webex and interact with it
 
 
-## Sample Interaction
-### Webex
-<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png" alt="Webex Bot" width="500" height="800">
 
-
-### CLI
-
-```
-User>
-AI>
-Before we start, please let me know who you are. What is your Username?
-User>
-testuser
-Hi testuser. What can I help you about Cisco NSO today?
-
-testuser>
-what is CDB
-AI> 
-Seems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.
-
-AI> 
-The Configuration Database (CDB) in Cisco NSO is a dedicated, built-in storage for data that efficiently stores and accesses network configuration data, such as device configurations, service parameters, and even configuration for NSO itself. It functions as a central repository for storing and managing network device configurations, playing a crucial role in network automation.
-
-The CDB has several key features that make it an excellent choice for a configuration store:
-
-1. **Hierarchical database structure**: The CDB has a tree-like structure, similar to a big XML document, which allows it to store all kinds of data.
-2. **Fast and lightweight database access**: The CDB provides fast and lightweight database access through a well-defined API.
-3. **Subscription mechanism**: The CDB has a subscription ("push") mechanism for change notification, which enables real-time updates.
-4. **Transaction support**: The CDB supports transactions, ensuring data consistency and preventing data corruption.
-5. **Rich and extensible schema**: The CDB's schema is based on YANG (RFC 7950), a standard modeling language that describes constraints on the data and allows for efficient storage.
-6. **Built-in support for schema and data upgrade**: The CDB has built-in support for schema and associated data upgrade, making it easy to manage changes to the configuration.
-7. **Close integration with NSO**: The CDB is closely integrated with NSO, providing low-maintenance operation.
-
-The CDB stores two primary types of data:
-
-1. **Intent**: The CDB stores the intent, which describes what you want from the network, traditionally referred to as a network service.
-2. **Network state**: The CDB stores a copy of the configuration of the managed devices, which represents the network state.
-
-By storing both intent and network state, the CDB enables correct provisioning of new services, faster diagnosis of problems, and advanced functionality like self-healing.
-
-In terms of performance, the CDB keeps a configurable amount of configuration data in RAM, in addition to persisting it to disk, which speeds up operations. The CDB also stores transient operational data, such as alarms and traffic statistics, which can be persisted to disk if required.
-
-Sources:
-
-* https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
-* Title: CDB and YANG - Key Features of the CDB (no URL provided)
-      
-Average execution time: 21.693789958953857
-      
-I did not do well? Leave me a [Feedback]() on Github 
-
-```
 ## Alternative Approach
 This chapter shows how to use more general approach with RAG(AnythingLLM) + Ollama. You can test the result of this approach with the one we created as a AI Agent.  
 This part of the code is for demo and testing purpose to compare with our version of approach.
