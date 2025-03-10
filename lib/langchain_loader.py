@@ -122,7 +122,7 @@ def web_splitter(url):
     ),
     )
     doc=loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
     texts = text_splitter.split_text(doc[0].page_content)
     out=[]
     counter=0

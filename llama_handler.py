@@ -220,8 +220,11 @@ def handler(msgs):
         "content": human_msg.content
       })
   msg=msgs[-1].content
+
+
   logger.info("Getting keyword")
   (data_gitbook,data_langchain)=keyword_scrapper(msg,config['get_content_type'],config['deploy_mode'])
+  messages[-1]["content"]=data_langchain
   logger.info("Keyword: "+str((data_gitbook,data_langchain)))
 
   logger.info("Searching Gitbook")
@@ -363,6 +366,7 @@ def main(msg,cache_in,cec_in="",name=""):
       elif config["com_int"] == "webex":
         send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)
       start = time.time()
+
       messages =  [HumanMessage(content=msg)]
       response=app.invoke(
           {"messages": messages},
