@@ -21,6 +21,7 @@ To compare our design with more general approach like AnythingLLM, we also provi
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
 * Only support Webex direct message for now. Group message is not supported.
 * Unique support hybrid context mode that use the context between Gitbook Search and Langchain Chroma RAG to provide the best result.
+
 ## Sample Interaction
 ### Webex
 <img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png" alt="Webex Bot" width="500" height="800">
