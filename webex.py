@@ -49,7 +49,6 @@ def recv():
     #room_id = json["data"]["roomId"]
     #log = datetime.now()
     #print("*****************"+str(log)+"*******************"+"\nMessage ID: "+message_id+"\nUser ID: "+user_id+"\nEmail: "+email+"\nRoom ID: "+room_id+"\n********************END********************\n\n")
-    #email="leeli4@cisco.com"
     #room_id = room_id_ticket
     email_previx=email.split("@")[1]
     if (email_previx != "webex.bot") and (email_previx == config["bot_email_prefix"]) :
