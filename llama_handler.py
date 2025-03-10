@@ -237,6 +237,7 @@ def handler(msgs):
       If you find the provided context is irrelevant, please disregard the irrelevant context and use the other context that you find that are more relevant. 
       If there are code or command example in the context that can help you answering the question, please include them into your answer. At the same time, consider all scenrio in the context.
       In the end of your answer, mention whatever source that you used to construct your answer. 
+      Construct your answer in Markdown format.
       '''
   messages_backup=messages.copy()
 
