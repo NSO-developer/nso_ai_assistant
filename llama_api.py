@@ -84,6 +84,7 @@ def llama32(msg, deploy="remote"):
         #llama-3.3-70B-Instruct-Turbo-Free
         messages=msg,
         stream=True,
+        temperature=0.6
       )
     else:
       stream=requests_llama32(msg)
