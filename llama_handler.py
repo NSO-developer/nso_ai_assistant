@@ -363,7 +363,6 @@ workflow_code.add_edge(START, "model")
 app_code = workflow_code.compile(checkpointer=memory)
 
 def main(msg,cec_in="",name=""):
-    logger.info("cache_in: "+str(cache))
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
       if config["com_int"] == "cli":
