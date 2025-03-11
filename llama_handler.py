@@ -41,7 +41,7 @@ def rephrase(msg,deploy="remote"):
 
   messages=messages+[{
         "role": "user",
-        "content": f'Can you rephrase and expend the question - "{msg}"? Your answre should only include the rephrased question in a string'
+        "content": f'Can you rephrase and expend the question - "{msg}"? Your answer should only include the rephrased question in a string'
       }]
     
   stream=llama32(messages,deploy)

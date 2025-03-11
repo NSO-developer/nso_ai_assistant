@@ -5,6 +5,7 @@ from readability import Document
 from lib.gitbook_scraper import search,gitbook_query
 from lib.api_scraper import retrive_database
 import requests 
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from llama_api import *
 
@@ -256,14 +257,27 @@ def info_prep():
   return(nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)
 
 
-def handler(history,msg,cache,config):
+def handler(msgs,cache):
   (nso_service_doc_yang,nso_service_pyapi_doc,nso_service_japi_doc)=cache
-  messages = history+[
-    {
-      "role": "user",
-      "content": msg
-    }
-  ]
+  messages=[]
+  #[HumanMessage(content='What is CDB', additional_kwargs={}, response_metadata={}, id='430b76f7-8a0e-4dfa-9670-8c8dc39b1a1e')]
+  for human_msg in msgs:
+    if isinstance(human_msg, HumanMessage):
+      messages.append({
+        "role": "user",
+        "content": human_msg.content
+      })
+    elif isinstance(human_msg, SystemMessage):
+      messages.append({
+        "role": "system",
+        "content": human_msg.content
+      })
+    elif isinstance(human_msg, AIMessage):
+      messages.append({
+        "role": "assistant",
+        "content": human_msg.content
+      })
+  msg=msgs[-1].content
 
   
   logger.info("Getting keyword")
