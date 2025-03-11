@@ -25,6 +25,7 @@ logger.addHandler(handler)
 
 config=load_config()
 
+global cache
 cache=None
 
 
@@ -359,6 +360,7 @@ workflow_code.add_edge(START, "model")
 app_code = workflow_code.compile(checkpointer=memory)
 
 def main(msg,cache_in,cec_in="",name=""):
+    global cache
     cache=cache_in
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
