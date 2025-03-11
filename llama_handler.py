@@ -27,6 +27,9 @@ config=load_config()
 
 global cache
 cache=None
+print("Initializing.......")
+logger.info("Initializing.......")
+cache=code_gen_cache()
 
 
 def rephrase(msg,deploy="remote"):
@@ -359,9 +362,8 @@ workflow_code.add_node("model", query_callback_code)
 workflow_code.add_edge(START, "model")
 app_code = workflow_code.compile(checkpointer=memory)
 
-def main(msg,cache_in,cec_in="",name=""):
-    global cache
-    cache=cache_in
+def main(msg,cec_in="",name=""):
+    logger.info("cache_in: "+str(cache))
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
       if config["com_int"] == "cli":
@@ -416,8 +418,6 @@ def main(msg,cache_in,cec_in="",name=""):
     return result + f'\n\nAverage execution time: {end - start}'
 
 if __name__=="__main__":
-    print("Initializing.......")
-    cache=code_gen_cache()
     if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
       vdb_init(True)
     #api_init(config)

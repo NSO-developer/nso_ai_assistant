@@ -74,7 +74,7 @@ def recv():
         if (request_body):
             if mode == "nso":
                 logger.info("NSO Specific Pipeline")
-                llama_response=main(message,cache,cec_in=cec,name=name)
+                llama_response=main(message,cec_in=cec,name=name)
                 logger.info("Sending request! - "+str(llama_response))
                 send(llama_response,cec)
                 creat_issue(message,llama_response,cec)
@@ -94,11 +94,6 @@ def recv():
 
 
 if __name__ == '__main__':
-        logger.info("Initializing.......")
-
-        print()
-        global cache
-        cache=code_gen_cache()
         if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
             vdb_init(True)
         if len(sys.argv)>2:
