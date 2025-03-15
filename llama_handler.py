@@ -2,16 +2,19 @@ from lib.gitbook_scraper import search
 import logging
 import time
 from llama_code_generator import handler as code_gen_handler
+from llama_changelog import handler as changelog_handler,changelog_init
+
 from llama_code_generator import info_prep as code_gen_cache
 from llama_api import *
 import json
 from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
+
+
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-import uuid
 import traceback
 
 
@@ -112,7 +115,7 @@ def define_purpose(msg,deploy="remote"):
   messages = [
     {
       "role": "user",
-      "content": f'Define if this question is a general question or request a code generation  - {msg}. Your answer should not provide any Explanation, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation'
+      "content": f'Define if this question is a general question , request a code generation or regarding to specific feature introduction or bug fix  - {msg}. Your answer should not provide any Explanation, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation. Answer 3 - if the question is regarding to specific feature introduction or bug fix'
     }
   ]
   
@@ -349,6 +352,12 @@ def query_callback_code(state: MessagesState):
     out=AIMessage(content=response)
     return {"messages":out}
 
+def query_callback_changlog(state: MessagesState):
+    response=changelog_handler(state["messages"])
+    out=AIMessage(content=response)
+    return {"messages":out}
+
+
 memory = MemorySaver()
 
 workflow = StateGraph(state_schema=MessagesState)
@@ -362,9 +371,15 @@ workflow_code.add_node("model", query_callback_code)
 workflow_code.add_edge(START, "model")
 app_code = workflow_code.compile(checkpointer=memory)
 
+workflow_changelog = StateGraph(state_schema=MessagesState)
+workflow_changelog.add_node("model", query_callback_changlog)
+workflow_changelog.add_edge(START, "model")
+app_changelog = workflow_changelog.compile(checkpointer=memory)
+
 def main(msg,cec_in="",name=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
     if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
+      logger.info("define as general question")
       if config["com_int"] == "cli":
          print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
       elif config["com_int"] == "webex":
@@ -381,13 +396,12 @@ def main(msg,cec_in="",name=""):
       #print("response1:" + response)
       end = time.time()
     elif purpose == 2 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
+      logger.info("define as code generation related")
       if config["com_int"] == "cli":
          print("AI> \nSeems like you want to generate some code. Let me think.....")
       elif config["com_int"] == "webex":
          send(f"Hi {name}. Let me try to craft your code.....This might takes around 45 sec to 1 min.", cec=cec_in)
-
       start = time.time()
-
       messages =  [HumanMessage(content=msg)]
       response=app_code.invoke(
           {"messages": messages},
@@ -395,6 +409,22 @@ def main(msg,cec_in="",name=""):
 
       )
       end = time.time()
+    elif purpose == 3 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
+      logger.info("define as changelog related")
+      if config["com_int"] == "cli":
+         print("AI> \nSeems like you want me to explore the changenote. Let me think.....")
+      elif config["com_int"] == "webex":
+         send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 45 sec to 1 min.", cec=cec_in)
+
+      start = time.time()
+      messages =  [HumanMessage(content=msg)]
+      response=app_changelog.invoke(
+          {"messages": messages},
+          config={"configurable": {"thread_id": cec_in}},
+
+      )
+      end = time.time()
+
     else:
       response=""
       send("ERROR: Undefined Purpose", cec=cec_in)
@@ -418,7 +448,10 @@ def main(msg,cec_in="",name=""):
 
 if __name__=="__main__":
     if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
+      logger.info("Initializing Gitbook VDB")
       vdb_init(True)
+      logger.info("Initializing Gitbook VDB......Done")
+      changelog_init()
     #api_init(config)
     logger.info("Deploy mode: "+ config['deploy_mode'])
     schedule_update()
@@ -434,6 +467,6 @@ if __name__=="__main__":
       if len(msg)==0:
          continue
       elif msg.lower() == "exit":
-          exit()
+          os._exit()
       else:
           main(msg,cache,cec_in)

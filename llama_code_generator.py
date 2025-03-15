@@ -289,10 +289,6 @@ def handler(msgs,cache):
      return ""
   logger.info("Getting Programming Language Done")
 
-#  logger.info("Getting NSO service doc")
-#  nso_service_doc=search("Implementing Services",top_result=1)
-#  logger.info("Getting NSO service doc Done")
-
   logger.info(f'Getting Network Keyword')
   network_keyword=network_keyword_scrapper(msg,config['deploy_mode'])
   logger.info(f'Getting Network Keyword - {network_keyword} Done ')

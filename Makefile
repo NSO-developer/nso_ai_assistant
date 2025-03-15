@@ -5,6 +5,7 @@ CHROMEDRIVER_VER=113.0.5672.63
 chrome:
 	sudo apt update
 	wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	sudo apt-get install -y libvulkan1 xdg-utils
 	sudo dpkg -i google-chrome-stable_current_amd64.deb
 	sudo apt-get install -f
 	google-chrome --version

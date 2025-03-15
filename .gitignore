@@ -10,6 +10,8 @@ resources/vectordb/code/*
 !resources/vectordb/code/.gitkeep
 resources/chat_mem/*
 !resources/chat_mem/.gitkeep
+resources/changelog_db/*
+!resources/changelog_db/.gitkeep
 nohup.out
 stats.sh
 stats.py
