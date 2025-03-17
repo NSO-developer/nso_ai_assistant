@@ -62,13 +62,24 @@ def rephrase(msg,deploy="remote"):
   data=data.replace("\"","")
   return data
 
-def eng_detect(msg):
-  eng_nr = re.search('/ENG-[1-9]*/', msg.upper())
-  bsp_nr = re.search('/BSP-[1-9]*/', msg.upper())
-  print(msg)
-  print(eng_nr)
-  return eng_nr
-
+def nr_detect(msg):
+  eng_nr = re.search('ENG-[0-9]*', msg,re.IGNORECASE)
+  bsp_nr = re.search('BEMS[0-9]*',  msg,re.IGNORECASE)
+  cdets_nr = re.search('CSC-[a-z,A-Z,0-9]*', msg,re.IGNORECASE)
+  ps_nr = re.search('PS-[0-9]*',  msg,re.IGNORECASE)
+  rt_nr = re.search('RT-[0-9]*',  msg,re.IGNORECASE)
+  #    metadata={"source": url,'Header 1': "NSO Version: "+str(ver),'Header 2':"ENG Number: "+str(eng_nr),'Header 3':"Component: "+str(type),'Header 4':"Relevent Case Number: "+str(case_nrs)}
+  metas={}
+  out={"ENG Number":eng_nr,"BEMs Number":bsp_nr,"CDETs Number":cdets_nr,"PS Number":ps_nr,"RT Number":rt_nr}
+  check=False
+  for key,value in out.items():
+     if value:
+        check=True
+        if key == "ENG Number":
+          metas['Header 2']="ENG Number: "+value.group()
+        else:
+          metas[key]=value.group()
+  return (metas,check)
 
 
 def handler(msgs):
@@ -96,8 +107,8 @@ def handler(msgs):
   rephrased_msg=rephrase(msg,deploy=config['deploy_mode'])
   logger.info(f"Rephrased qestion Done - {rephrased_msg}")
   logger.info("Detecting ENG")
-  eng_nr=eng_detect(msg)
-  logger.info(f"Detecting ENG Done - {eng_nr}")
+  nr=nr_detect(msg)
+  logger.info(f"Detecting ENG Done - {nr}")
 
 
   general=""" 
@@ -107,7 +118,7 @@ def handler(msgs):
       Construct your answer in Markdown format.
   """
   logger.info("Extract from changelog vdb")
-  search_result=query_vdb(rephrased_msg,eng_nr,top_result=2)
+  search_result=query_vdb(rephrased_msg,nr,top_result=2)
   logger.info(f"Extract from changelog vdb Done - {search_result}")
 
   systemPrompt = f'''

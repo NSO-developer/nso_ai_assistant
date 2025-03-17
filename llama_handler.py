@@ -112,19 +112,22 @@ def keyword_scrapper(msg,mode,deploy="remote"):
 
 
 def define_purpose(msg,deploy="remote"):
-  messages = [
-    {
-      "role": "user",
-      "content": f'Define if this question is a general question , request a code generation or regarding to specific feature introduction or bug fix  - {msg}. Your answer should not provide any Explanation, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation. Answer 3 - if the question is regarding to specific feature introduction or bug fix'
-    }
-  ]
-  
-  stream=llama32(messages,deploy)
-  response=get_data(stream,deploy)
-  data=""
-  for str in response:
-     if str.isnumeric():
-      data=data+str
+  if check_changelog(msg):
+     data=3
+  else:
+    messages = [
+      {
+        "role": "user",
+        "content": f'Define if this question is a general question , request a code generation or regarding to specific feature introduction or bug fix  - {msg}. Your answer should not provide any Explanation, provide only absolute integer answer by following the instruction below.  Answer 1  - if the question is a general question. Answer 2 - if the question is a request for code generation. Answer 3 - if the question is regarding to specific feature introduction or bug fix'
+      }
+    ]
+    
+    stream=llama32(messages,deploy)
+    response=get_data(stream,deploy)
+    data=""
+    for str in response:
+      if str.isnumeric():
+        data=data+str
   #print(data)
   return data
 
@@ -357,6 +360,12 @@ def query_callback_changlog(state: MessagesState):
     out=AIMessage(content=response)
     return {"messages":out}
 
+def check_changelog(msg):
+  datas=[re.search('ENG-[0-9]*', msg,re.IGNORECASE),re.search('BEMS[0-9]*',  msg,re.IGNORECASE), re.search('CSC-[a-z,A-Z,0-9]*', msg,re.IGNORECASE),re.search('PS-[0-9]*',  msg,re.IGNORECASE),re.search('RT-[0-9]*',  msg,re.IGNORECASE)]
+  for item in datas:
+     if item:
+        return True
+  return False
 
 memory = MemorySaver()
 
@@ -378,57 +387,56 @@ app_changelog = workflow_changelog.compile(checkpointer=memory)
 
 def main(msg,cec_in="",name=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
-    if purpose == 1 or "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
-      logger.info("define as general question")
-      if config["com_int"] == "cli":
-         print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
-      elif config["com_int"] == "webex":
-        send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)
-      start = time.time()
+    if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower():
+      if purpose == 1:
+        logger.info("define as general question")
+        if config["com_int"] == "cli":
+          print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
+        elif config["com_int"] == "webex":
+          send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)
+        start = time.time()
 
-      messages =  [HumanMessage(content=msg)]
-      response=app.invoke(
-          {"messages": messages},
-          config={"configurable": {"thread_id": cec_in}},
+        messages =  [HumanMessage(content=msg)]
+        response=app.invoke(
+            {"messages": messages},
+            config={"configurable": {"thread_id": cec_in}},
 
-      )
+        )
+        end = time.time()
+      elif purpose == 3:
+        logger.info("define as changelog related")
+        if config["com_int"] == "cli":
+          print("AI> \nSeems like you want me to explore the changenote. Let me think.....")
+        elif config["com_int"] == "webex":
+          send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 45 sec to 1 min.", cec=cec_in)
 
-      #print("response1:" + response)
-      end = time.time()
-    elif purpose == 2 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
-      logger.info("define as code generation related")
-      if config["com_int"] == "cli":
-         print("AI> \nSeems like you want to generate some code. Let me think.....")
-      elif config["com_int"] == "webex":
-         send(f"Hi {name}. Let me try to craft your code.....This might takes around 45 sec to 1 min.", cec=cec_in)
-      start = time.time()
-      messages =  [HumanMessage(content=msg)]
-      response=app_code.invoke(
-          {"messages": messages},
-          config={"configurable": {"thread_id": cec_in}},
+        start = time.time()
+        messages =  [HumanMessage(content=msg)]
+        response=app_changelog.invoke(
+            {"messages": messages},
+            config={"configurable": {"thread_id": cec_in}},
 
-      )
-      end = time.time()
-    elif purpose == 3 and "how" not in msg.lower() and "what" not in msg.lower() and "when" not in msg.lower() and "why" not in msg.lower():
-      logger.info("define as changelog related")
-      if config["com_int"] == "cli":
-         print("AI> \nSeems like you want me to explore the changenote. Let me think.....")
-      elif config["com_int"] == "webex":
-         send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 45 sec to 1 min.", cec=cec_in)
-
-      start = time.time()
-      messages =  [HumanMessage(content=msg)]
-      response=app_changelog.invoke(
-          {"messages": messages},
-          config={"configurable": {"thread_id": cec_in}},
-
-      )
-      end = time.time()
-
+        )
+        end = time.time()
     else:
-      response=""
-      send("ERROR: Undefined Purpose", cec=cec_in)
-      logger.error("Undefined Purpose")
+      if purpose == 2:
+        logger.info("define as code generation related")
+        if config["com_int"] == "cli":
+          print("AI> \nSeems like you want to generate some code. Let me think.....")
+        elif config["com_int"] == "webex":
+          send(f"Hi {name}. Let me try to craft your code.....This might takes around 45 sec to 1 min.", cec=cec_in)
+        start = time.time()
+        messages =  [HumanMessage(content=msg)]
+        response=app_code.invoke(
+            {"messages": messages},
+            config={"configurable": {"thread_id": cec_in}},
+
+        )
+        end = time.time()
+      else:
+        response=""
+        send("ERROR: Undefined Purpose", cec=cec_in)
+        logger.error("Undefined Purpose")
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     #print("msg:" + msg)

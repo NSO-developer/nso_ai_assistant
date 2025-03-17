@@ -134,7 +134,7 @@ def web_splitter(url):
         counter+=1
     return out
 
-def process_doc(content,ver,url,contents):
+def process_doc(content,ver,url,contents_url):
     meta=content.text.split("\n\n[")[1]
     [eng_nr,rest]=meta.split("/")
     type_split=rest.split(";")
@@ -144,13 +144,26 @@ def process_doc(content,ver,url,contents):
     else:
         case_nrs='Internal Found Issue'
     case_nrs=case_nrs.replace("]","")
+
+    bems=re.search('BEMS[0-9]*',  case_nrs,re.IGNORECASE)
+    cdets_nr = re.search('CSC-[a-z,A-Z,0-9]*', case_nrs,re.IGNORECASE)
+    ps_nr = re.search('PS-[0-9]*',  case_nrs,re.IGNORECASE)
+    rt_nr = re.search('RT-[0-9]*',  case_nrs,re.IGNORECASE)
+    out={"BEMs Number":bems,"CDETs Number":cdets_nr,"PS Number":ps_nr,"RT Number":rt_nr}
+    metas={"source": url,'Header 1': "NSO Version: "+str(ver),'Header 2':"ENG Number: "+str(eng_nr),'Header 3':"Component: "+str(type)}
+
+    for key,value in out.items():
+        if value:
+            metas[key]=value.group()
+
     document = Document(
     page_content=content.text,
-    metadata={"source": url,"NSO Version":ver,"ENG Number":eng_nr,"Component":type,"Relevent Case Number":case_nrs}
+    metadata=metas
     )
+
     logger.info(f"Parsed: {eng_nr} from NSO {ver}")
-    contents[eng_nr]=document
-    return contents
+    contents_url[eng_nr]=document
+    return contents_url
 
 
 async def splitter_document(url,semaphore):
@@ -170,22 +183,25 @@ def process_docs(soup,ver,url,contents):
     eng_list=soup.find_all('div',{"class": "ticket"})
     logger.info("Splitting: "+url)
     start = time.time()
+    contents_url={}
     for content in eng_list:   
-        pool[url]=threading.Thread(target=process_doc, args=(content,ver,url,contents))
+        pool[url]=threading.Thread(target=process_doc, args=(content,ver,url,contents_url))
 
     for thread in pool.values():
         thread.start()
     for thread in pool.values():
         thread.join()
     end = time.time()
-    logger.info("Splitting: "+url+" Done. Length: "+str(len(eng_list)) + f" ({end - start})")
+    content[url]=contents_url
+    logger.info("Splitting: "+url+" Done. Expect Length: "+str(len(eng_list))+". Actual Length: "+str(len(contents_url)) +"Current Total Length: "+str(len(contents)) + f" ({end - start})")
     save_database(url)
 
     return contents
 
 def add_vector_databases(splitted_docs):
-    (ids,splitted_doc)=cleaning_docs(splitted_docs)
-    add_vector_database(ids,splitted_doc)
+    for url,doc in splitted_docs.items():
+        (ids,splitted_doc)=cleaning_docs(doc)
+        add_vector_database(ids,splitted_doc)
 
 def add_vector_database(ids,splitted_doc):
     #(ids,splitted_doc)=cleaning_docs(splitted_doc)
@@ -218,17 +234,18 @@ def cleaning_docs(splitted_docs):
     return (ids,lst_splitted_doc)
 
 
-def query_vdb(query,eng_nr,mode="similarity",top_result=2):
+def query_vdb(query,nr,mode="similarity",top_result=2):
     logger.info("Querying Vector DB in "+ mode+": "+ query)
     datas={}
     out=""
+    (nr_database,check)=nr
     if mode == "similarity":
         logger.info("similarity_search")
-        if eng_nr != "None":
+        if check:
             results = vectordb.similarity_search(
             query,
             k=top_result,
-            filter={'ENG Number':eng_nr}
+            filter=nr_database
             )
         else:
             results = vectordb.similarity_search(
@@ -265,7 +282,7 @@ async def add_vdb_byurls(urls):
     #documents=loader(urls)
     logger.info("Spliting Document Start")
     splitted_doc=await splitter(urls)
-    logger.info(f"Spliting Document Start - Done ENG:{splitted_doc.keys()}")
+    logger.info(f"Spliting Document Start - Done ENG:{splitted_doc}")
 
     logger.info("Adding Spliited Doc to the VDB")
     add_vector_databases(splitted_doc)
