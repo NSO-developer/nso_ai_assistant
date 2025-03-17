@@ -362,16 +362,16 @@ def schedule_update():
 if __name__=="__main__":
     #vdb_init(True)
 
-    database={}
-    contents={}
-    nso_ver="latest"
-    add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
+    #database={}
+    #contents={}
+    #nso_ver="latest"
+    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
 
 
-    #query="Which JDK version should I use for NSO 6.1?"
-    #data=query_vdb(query,top_result=2)
-    #print("===========Return Data=====================")
-    #print(data)
-    #print("================================")
+    query="Which JDK version should I use for NSO 6.1?"
+    data=query_vdb(query,top_result=2)
+    print("===========Return Data=====================")
+    print(data)
+    print("================================")
 
     

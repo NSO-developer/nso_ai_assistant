@@ -467,6 +467,6 @@ if __name__=="__main__":
       if len(msg)==0:
          continue
       elif msg.lower() == "exit":
-          os._exit()
+          os._exit(os.EX_OK)
       else:
           main(msg,cache,cec_in)

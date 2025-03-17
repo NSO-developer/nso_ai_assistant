@@ -148,6 +148,7 @@ def process_doc(content,ver,url,contents):
     page_content=content.text,
     metadata={"source": url,"NSO Version":ver,"ENG Number":eng_nr,"Component":type,"Relevent Case Number":case_nrs}
     )
+    logger.info(f"Parsed: {eng_nr} from NSO {ver}")
     contents[eng_nr]=document
     return contents
 
@@ -183,65 +184,71 @@ def process_docs(soup,ver,url,contents):
     return contents
 
 def add_vector_databases(splitted_docs):
-    for key,content in splitted_docs.items():
-        logger.info(f"Try to pre-process {key} - {content} before add to the vdb")
-        add_vector_database(key,content)
+    (ids,splitted_doc)=cleaning_docs(splitted_docs)
+    add_vector_database(ids,splitted_doc)
 
-def add_vector_database(key,splitted_doc):
-    (ids,splitted_doc)=cleaning_docs(splitted_doc)
-    logger.info("Adding: "+key+" to Chroma Vector Database")
-
+def add_vector_database(ids,splitted_doc):
+    #(ids,splitted_doc)=cleaning_docs(splitted_doc)
     if len(splitted_doc) > 0:
         vectordb.add_documents(documents=splitted_doc, ids=ids)
-        logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
+        logger.info("Adding: "+str(len(splitted_doc))+" ENGs to Chroma Vector Database - Done. Hash: "+ str(ids))
     else:
-        logger.error("Adding: "+key+" to Chroma Vector Database - ERROR(doc is empty). Hash: "+ str(ids))
+        logger.error("Adding: "+str(len(splitted_doc))+" ENGs to Chroma Vector Database - ERROR(doc is empty). Hash: "+ str(ids))
     return ids
 
 
-def cleaning_docs(splitted_doc):
+def cleaning_docs(splitted_docs):
     lst_splitted_doc=[]
     ids=[]
-    doc=splitted_doc
-    if not doc:
-        logger.error("Doc is empty. Doc: "+str(doc))
-    elif not doc.metadata:
-        logger.error("Doc metadata is empty. Doc: "+str(doc)+" / metadata: "+str(doc.metadata))
-    else:
-        if len(doc.metadata)>0:
-            sha = hashlib.sha256()
-            sha.update(str(doc.metadata).encode())
-            id=sha.hexdigest()
-            if id not in ids:
-                ids.append(str(id))
-                lst_splitted_doc.append(doc)
-                logger.info("Generating id: "+str(id)+" / metadata: "+str(doc.metadata))
+    for key,doc in splitted_docs.items():
+        logger.info(f"Cleaning {doc} for ENG {key}")
+        if not doc:
+            logger.error("Doc is empty. Doc: "+str(doc))
+        elif not doc.metadata:
+            logger.error("Doc metadata is empty. Doc: "+str(doc)+" / metadata: "+str(doc.metadata))
+        else:
+            if len(doc.metadata)>0:
+                sha = hashlib.sha256()
+                sha.update(str(doc.metadata).encode())
+                id=sha.hexdigest()
+                if id not in ids:
+                    ids.append(str(id))
+                    lst_splitted_doc.append(doc)
+                    logger.info("Generating id: "+str(id)+" / metadata: "+str(doc.metadata))
     return (ids,lst_splitted_doc)
 
 
-def query_vdb(query,mode="similarity",top_result=2):
+def query_vdb(query,eng_nr,mode="similarity",top_result=2):
     logger.info("Querying Vector DB in "+ mode+": "+ query)
     datas={}
     out=""
     if mode == "similarity":
         logger.info("similarity_search")
-        results = vectordb.similarity_search(
-        query,
-        k=top_result
-        )
+        if eng_nr != "None":
+            results = vectordb.similarity_search(
+            query,
+            k=top_result,
+            filter={'ENG Number':eng_nr}
+            )
+        else:
+            results = vectordb.similarity_search(
+            query,
+            k=top_result
+            )
     else:
         logger.info("max_marginal_relevance_search")
         results=vectordb.max_marginal_relevance_search(query,k=top_result)
     #print(str(results))
     for res in results:
         logger.info("Result obtained from vdb: "+str(res))
-        logger.info("Metadata: "+str(res.metadata))
+        #logger.info("Metadata: "+str(res.metadata))
 
         index=""
         source=""
         for title,data in res.metadata.items():
             source=title+": "+data+", "+source
-
+            if title == "ENG Number":
+                index=data
         datas[index]="url: "+str(source)+"\nresult: "+res.page_content
         logger.info("Result obtained from vdb - Loaded: "+str(res))
 
@@ -258,6 +265,8 @@ async def add_vdb_byurls(urls):
     #documents=loader(urls)
     logger.info("Spliting Document Start")
     splitted_doc=await splitter(urls)
+    logger.info(f"Spliting Document Start - Done ENG:{splitted_doc.keys()}")
+
     logger.info("Adding Spliited Doc to the VDB")
     add_vector_databases(splitted_doc)
 
@@ -324,8 +333,9 @@ if __name__=="__main__":
     #vdb_init(True)
     #vdb_init(True)
     #query_vdb("which NSO version SSHJ version 0.39.0 has been introduced?",mode="similarity",top_result=2)
-    query="CDB Persistant"
-    data=query_vdb(query,top_result=2)
+    #query="which NSO version does CDB Persistent introduced?"
+    query="Which NSO version does ENG-25888 introduced?"
+    data=query_vdb(query,mode="similarity",top_result=1)
     print("===========Return Data=====================")
     print(data)
     print("================================")

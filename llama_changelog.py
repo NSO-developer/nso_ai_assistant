@@ -12,6 +12,8 @@ import json
 import os
 import logging
 import time
+import re
+
 
 try: 
     from BeautifulSoup import BeautifulSoup
@@ -22,10 +24,10 @@ except ImportError:
 TAVILY_API_KEY = os.environ["TAVILY_API_KEY"]
 
 
-handler = logging.FileHandler("logs/llama_code_gen.log")        
+handler = logging.FileHandler("logs/llama_changelog.log")        
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
-logger = logging.getLogger('llama_code_gen')
+logger = logging.getLogger('llama_changelog')
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
@@ -41,7 +43,7 @@ def rephrase(msg,deploy="remote"):
       "role": "system",
       "content": f'''
       NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
-      Doc,doc and documentation is in term of NSO Gitbook Documentation.
+      Your answer will be used to search inside NSO Change Log.
       '''
     }
   ]
@@ -59,6 +61,15 @@ def rephrase(msg,deploy="remote"):
         data=data+str
   data=data.replace("\"","")
   return data
+
+def eng_detect(msg):
+  eng_nr = re.search('/ENG-[1-9]*/', msg.upper())
+  bsp_nr = re.search('/BSP-[1-9]*/', msg.upper())
+  print(msg)
+  print(eng_nr)
+  return eng_nr
+
+
 
 def handler(msgs):
   messages=[]
@@ -84,6 +95,11 @@ def handler(msgs):
   logger.info("Rephrasing")
   rephrased_msg=rephrase(msg,deploy=config['deploy_mode'])
   logger.info(f"Rephrased qestion Done - {rephrased_msg}")
+  logger.info("Detecting ENG")
+  eng_nr=eng_detect(msg)
+  logger.info(f"Detecting ENG Done - {eng_nr}")
+
+
   general=""" 
       You are a Cisco NSO Expert that answer Cisco NSO related question based on NSO Change Note. The relevent Change Note will be provided as the contexts. 
       You must strictly follow the context and answer the question. 
@@ -91,8 +107,8 @@ def handler(msgs):
       Construct your answer in Markdown format.
   """
   logger.info("Extract from changelog vdb")
-  search_result=query_vdb(rephrased_msg,top_result=2)
-  logger.info(f"Extract from changelog vdb Done - {rephrased_msg}")
+  search_result=query_vdb(rephrased_msg,eng_nr,top_result=2)
+  logger.info(f"Extract from changelog vdb Done - {search_result}")
 
   systemPrompt = f'''
       {general}
@@ -111,7 +127,7 @@ def handler(msgs):
                     "content": systemPrompt,
                 })
   
-  logger.info("AI creating answer based on context")
+  logger.info(f"AI creating answer based on context - {messages}")
   stream=llama32(messages,config['deploy_mode'])
   logger.info("AI creating answer based on context Done")
 
