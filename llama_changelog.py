@@ -5,6 +5,7 @@ from lib.langchain_loader_changelog import query_vdb,vdb_init
 
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from llama_gitbook import handler as gitbook_handler
 
 from llama_api import *
 
@@ -37,13 +38,18 @@ logger.addHandler(handler)
 client = Together()
 tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
 
-def rephrase(msg,deploy="remote"):
+def rephrase(msg,search_result,deploy="remote"):
   messages =[
     {
       "role": "system",
       "content": f'''
       NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
-      Your answer will be used to search inside NSO Change Log.
+      Your answer will be used to search inside NSO Release Note.
+      You will rephrase your question based on the following context
+
+      <contexts>
+      {search_result}
+      </contexts>
       '''
     }
   ]
@@ -81,6 +87,66 @@ def nr_detect(msg):
           metas[key]=value.group()
   return (metas,check)
 
+def keyword_scrapper(msg,deploy="remote"):
+  messages =[
+    {
+      "role": "system",
+      "content": f'''
+      NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
+      List your answer in Json format
+      Do not add description to your answer. 
+      If there are version number mentioned in the question, include it in your answer. Otherwise ignore.
+      '''
+    }
+  ]
+
+  messages1=messages+[{
+        "role": "user",
+        "content": f'What feature in NSO is the following question asking about - "{msg}"? '
+      }]
+       
+  stream=llama32(messages1,deploy)
+  response=get_data(stream,deploy)
+  data=""
+  for str in response:
+      data=data+str
+  data_json=json.loads(data)
+  output_json={"feature":data_json["feature"]}
+  if "version" in data_json.keys():
+     output_json["version"]=data_json["version"]
+  return output_json
+
+
+def context_extract(context,deploy="remote"):
+  messages =[
+    {
+      "role": "system",
+      "content": f'''
+      NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
+      '''
+    }
+  ]
+
+  messages1=messages+[{
+        "role": "user",
+        "content": f'Extract the key takeaway of the following context - "{context}"? '
+      }]
+       
+  stream=llama32(messages1,deploy)
+  response=get_data(stream,deploy)
+  data=""
+  for str in response:
+      data=data+str
+  return data
+
+def obtain_info(msg):
+  messages =  [HumanMessage(content="What is "+msg+" ?")]
+  tech_detail=gitbook_handler(messages)
+  data=""
+  for str in tech_detail:
+      data=data+str
+  return data
+
 
 def handler(msgs):
   messages=[]
@@ -103,12 +169,25 @@ def handler(msgs):
   msg=msgs[-1].content
 
   
+  logger.info("Keyword Extraction")
+  keyword=keyword_scrapper(msg,deploy="remote")
+  logger.info(f"Keyword Extraction Done - {keyword}")
+
+  logger.info("Technical Detail Extraction")
+  tech_detail=obtain_info(keyword["feature"])
+  logger.info(f"Technical Detail Extraction Done - {tech_detail}")
+
+  logger.info("Extract Key Takeaway")
+  takeaway=context_extract(tech_detail,deploy="remote")
+  logger.info(f"Extract Key Takeaway - {takeaway}")
+
   logger.info("Rephrasing")
-  rephrased_msg=rephrase(msg,deploy=config['deploy_mode'])
+  rephrased_msg=rephrase(msg,takeaway,deploy=config['deploy_mode'])
   logger.info(f"Rephrased qestion Done - {rephrased_msg}")
   logger.info("Detecting ENG")
   nr=nr_detect(msg)
   logger.info(f"Detecting ENG Done - {nr}")
+
 
 
   general=""" 
@@ -143,8 +222,7 @@ def handler(msgs):
   logger.info("AI creating answer based on context Done")
 
   response=get_data(stream,config['deploy_mode'])
-  out=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
-  return out
+  return response
 
 def changelog_init():
    logger.info("Initializing changelog vdb")

@@ -323,8 +323,7 @@ def handler(msgs,cache):
   logger.info("AI creating answer based on context Done")
 
   response=get_data(stream,config['deploy_mode'])
-  out=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
-  return out
+  return response
 
 
 

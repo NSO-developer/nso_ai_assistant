@@ -179,21 +179,20 @@ async def splitter_document(url,semaphore):
     return (soup,ver,url)
 
 def process_docs(soup,ver,url,contents):
-    pool={}
+    pool=[]
     eng_list=soup.find_all('div',{"class": "ticket"})
     logger.info("Splitting: "+url)
     start = time.time()
     contents_url={}
     for content in eng_list:   
-        pool[url]=threading.Thread(target=process_doc, args=(content,ver,url,contents_url))
-
-    for thread in pool.values():
-        thread.start()
-    for thread in pool.values():
+        th=threading.Thread(target=process_doc, args=(content,ver,url,contents_url))
+        th.start()
+        pool.append(th)
+    for thread in pool:
         thread.join()
     end = time.time()
-    content[url]=contents_url
-    logger.info("Splitting: "+url+" Done. Expect Length: "+str(len(eng_list))+". Actual Length: "+str(len(contents_url)) +"Current Total Length: "+str(len(contents)) + f" ({end - start})")
+    contents[url]=contents_url
+    logger.info("Splitting: "+url+" Done. Expect Length: "+str(len(eng_list))+". Actual Length: "+str(len(contents_url)) +" ,Current Total Length: "+str(len(contents)) + f" ({end - start})")
     save_database(url)
 
     return contents
@@ -264,8 +263,7 @@ def query_vdb(query,nr,mode="similarity",top_result=2):
         source=""
         for title,data in res.metadata.items():
             source=title+": "+data+", "+source
-            if title == "ENG Number":
-                index=data
+        index=res.metadata["Header 2"]
         datas[index]="url: "+str(source)+"\nresult: "+res.page_content
         logger.info("Result obtained from vdb - Loaded: "+str(res))
 
@@ -347,14 +345,15 @@ def schedule_update():
 
 
 if __name__=="__main__":
+    asyncio.run(add_vdb_byurls("https://developer.cisco.com/docs/nso/changelog-explorer/?from=5.5.6&to=5.5.7"))
     #vdb_init(True)
     #vdb_init(True)
     #query_vdb("which NSO version SSHJ version 0.39.0 has been introduced?",mode="similarity",top_result=2)
     #query="which NSO version does CDB Persistent introduced?"
-    query="Which NSO version does ENG-25888 introduced?"
-    data=query_vdb(query,mode="similarity",top_result=1)
-    print("===========Return Data=====================")
-    print(data)
-    print("================================")
+    #query="Which NSO version does ENG-25888 introduced?"
+    #data=query_vdb(query,mode="similarity",top_result=1)
+    #print("===========Return Data=====================")
+    #print(data)
+    #print("================================")
 
     
