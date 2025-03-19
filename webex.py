@@ -7,7 +7,7 @@ from webex_api import *
 import logging
 from github_feedback import *
 from lib.langchain_loader import *
-from llama_changelog import handler as changelog_init
+from llama_changelog import changelog_init
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
