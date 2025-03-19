@@ -7,6 +7,7 @@ from webex_api import *
 import logging
 from github_feedback import *
 from lib.langchain_loader import *
+from llama_changelog import handler as changelog_init
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -39,9 +40,7 @@ def recv():
     # Get the json data
     json = request.json
     print (request.url, file = sys.stdout)
-
     # Retrieving message ID, person ID, email and room ID from message received
-
     message_id = json["data"]["id"]
     #user_id = json["data"]["personId"]
     email = json["data"]["personEmail"]
@@ -96,6 +95,8 @@ def recv():
 if __name__ == '__main__':
         if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
             vdb_init(True)
+            logger.info("Initializing Gitbook VDB......Done")
+            changelog_init()
         if len(sys.argv)>2:
             flag=sys.argv[1]
             if flag == "--webhook_reg":
