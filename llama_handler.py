@@ -144,7 +144,7 @@ def main(msg,cec_in="",name=""):
       elif purpose == 3:
         logger.info("define as changelog related")
         if config["com_int"] == "webex":
-          send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 45 sec to 1 min.", cec=cec_in)
+          send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 1 to 2 min.", cec=cec_in)
 
         start = time.time()
         messages =  [HumanMessage(content=msg)]
