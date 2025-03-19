@@ -169,25 +169,34 @@ def handler(msgs):
   msg=msgs[-1].content
 
   
-  logger.info("Keyword Extraction")
-  keyword=keyword_scrapper(msg,deploy="remote")
-  logger.info(f"Keyword Extraction Done - {keyword}")
 
-  logger.info("Technical Detail Extraction")
-  tech_detail=obtain_info(keyword["feature"])
-  logger.info(f"Technical Detail Extraction Done - {tech_detail}")
-
-  logger.info("Extract Key Takeaway")
-  takeaway=context_extract(tech_detail,deploy="remote")
-  logger.info(f"Extract Key Takeaway - {takeaway}")
-
-  logger.info("Rephrasing")
-  rephrased_msg=rephrase(msg,takeaway,deploy=config['deploy_mode'])
-  messages[-1]["content"]=rephrased_msg
-  logger.info(f"Rephrased qestion Done - {rephrased_msg}")
   logger.info("Detecting ENG")
   nr=nr_detect(msg)
   logger.info(f"Detecting ENG Done - {nr}")
+
+  (_metas,check)=nr
+
+  if not check:
+    logger.info("Keyword Extraction")
+    keyword=keyword_scrapper(msg,deploy="remote")
+    logger.info(f"Keyword Extraction Done - {keyword}")
+
+    logger.info("Technical Detail Extraction")
+    tech_detail=obtain_info(keyword["feature"])
+    logger.info(f"Technical Detail Extraction Done - {tech_detail}")
+
+    logger.info("Extract Key Takeaway")
+    takeaway=context_extract(tech_detail,deploy="remote")
+    logger.info(f"Extract Key Takeaway - {takeaway}")
+
+    logger.info("Rephrasing")
+    rephrased_msg=rephrase(msg,takeaway,deploy=config['deploy_mode'])
+    messages[-1]["content"]=rephrased_msg
+    logger.info(f"Rephrased qestion Done - {rephrased_msg}")
+  else:
+    rephrased_msg=msg
+
+
 
 
 
