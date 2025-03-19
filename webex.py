@@ -94,9 +94,13 @@ def recv():
 
 if __name__ == '__main__':
         if config["get_content_type"] == "langchain_rag" or config["get_content_type"] == "hybrid":
+            logger.info("Initializing Gitbook VDB")
             vdb_init(True)
             logger.info("Initializing Gitbook VDB......Done")
+            logger.info("Initializing Changelog Explorer VDB")
             changelog_init()
+            logger.info("Initializing Changelog Explorer VDB......Done")
+
         if len(sys.argv)>2:
             flag=sys.argv[1]
             if flag == "--webhook_reg":
