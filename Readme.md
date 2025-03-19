@@ -14,7 +14,7 @@ Therefore I created this repository to provide more accurate AI searching engine
 
 To compare our design with more general approach like AnythingLLM, we also provide testcode to interact with AnythingLLM as RAG and retrive answer. We call it alternative approach in this readme guide.
 
-<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png" alt="NSO AI Pipeline Design" width="800" height="600">
+![Arch](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png)
 
 Design is inspired by the following post
 [1]“How to build an AI search engine (OSS Perplexity Clone),” Together, 2025. https://docs.together.ai/docs/ai-search-engine (accessed Jan. 28, 2025).
@@ -29,7 +29,6 @@ Design is inspired by the following post
 ## Sample Interaction
 ### Webex
 <img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png" alt="Webex Bot" width="500" height="800">
-
 
 ### CLI
 
