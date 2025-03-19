@@ -11,7 +11,7 @@ import json
 from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
-
+from lib.loader import *
 
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
@@ -44,20 +44,35 @@ def load_config():
 
 
 def query_callback(state: MessagesState):
+    if config["com_int"] == "cli":
+      loader = Loader("Seems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.").start()
+      #print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
     response=gitbook_handler(state["messages"])
+    if config["com_int"] == "cli":
+      loader.stop()
     data=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
     out=AIMessage(content=data)
     return {"messages":out}
 
 
 def query_callback_code(state: MessagesState):
+    if config["com_int"] == "cli":
+      loader = Loader("AI> Seems like you want to generate some code. Let me think..... This might takes around 45 sec to 1 min.").start()
+          #print("AI> \nSeems like you want to generate some code. Let me think.....")
     response=code_gen_handler(state["messages"],cache)
+    if config["com_int"] == "cli":
+      loader.stop()
     data=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
     out=AIMessage(content=data)
     return {"messages":out}
 
 def query_callback_changlog(state: MessagesState):
+    if config["com_int"] == "cli":
+      loader = Loader("AI> Seems like you want me to explore the changenote. Let me think..... This might takes around 1 min to 2 min.").start()
+      #print("AI> \nSeems like you want me to explore the changenote. Let me think.....")
     response=changelog_handler(state["messages"])
+    if config["com_int"] == "cli":
+      loader.stop()
     data=print_data(response, deploy=config['deploy_mode'],intf=config['com_int'])
     out=AIMessage(content=data)
     return {"messages":out}
@@ -115,13 +130,10 @@ def main(msg,cec_in="",name=""):
        bypass = False
     if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower() or bypass:
       if purpose == 1:
+        if config["com_int"] == "webex":
+            send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)    
         logger.info("define as general question")
-        if config["com_int"] == "cli":
-          print("AI> \nSeems like you want some answer on general question. Let me think..... This might takes around 45 sec to 1 min.")           
-        elif config["com_int"] == "webex":
-          send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)
         start = time.time()
-
         messages =  [HumanMessage(content=msg)]
         response=app.invoke(
             {"messages": messages},
@@ -131,9 +143,7 @@ def main(msg,cec_in="",name=""):
         end = time.time()
       elif purpose == 3:
         logger.info("define as changelog related")
-        if config["com_int"] == "cli":
-          print("AI> \nSeems like you want me to explore the changenote. Let me think.....")
-        elif config["com_int"] == "webex":
+        if config["com_int"] == "webex":
           send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 45 sec to 1 min.", cec=cec_in)
 
         start = time.time()
@@ -147,9 +157,7 @@ def main(msg,cec_in="",name=""):
     else:
       if purpose == 2:
         logger.info("define as code generation related")
-        if config["com_int"] == "cli":
-          print("AI> \nSeems like you want to generate some code. Let me think.....")
-        elif config["com_int"] == "webex":
+        if config["com_int"] == "webex":
           send(f"Hi {name}. Let me try to craft your code.....This might takes around 45 sec to 1 min.", cec=cec_in)
         start = time.time()
         messages =  [HumanMessage(content=msg)]
