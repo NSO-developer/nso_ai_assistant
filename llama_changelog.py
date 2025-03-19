@@ -71,7 +71,7 @@ def rephrase(msg,search_result,deploy="remote"):
 def nr_detect(msg):
   eng_nr = re.search('ENG-[0-9]*', msg,re.IGNORECASE)
   bsp_nr = re.search('BEMS[0-9]*',  msg,re.IGNORECASE)
-  cdets_nr = re.search('CSC-[a-z,A-Z,0-9]*', msg,re.IGNORECASE)
+  cdets_nr = re.search('CSC[a-z,A-Z,0-9]*', msg,re.IGNORECASE)
   ps_nr = re.search('PS-[0-9]*',  msg,re.IGNORECASE)
   rt_nr = re.search('RT-[0-9]*',  msg,re.IGNORECASE)
   #    metadata={"source": url,'Header 1': "NSO Version: "+str(ver),'Header 2':"ENG Number: "+str(eng_nr),'Header 3':"Component: "+str(type),'Header 4':"Relevent Case Number: "+str(case_nrs)}
@@ -183,6 +183,7 @@ def handler(msgs):
 
   logger.info("Rephrasing")
   rephrased_msg=rephrase(msg,takeaway,deploy=config['deploy_mode'])
+  messages[-1]["content"]=rephrased_msg
   logger.info(f"Rephrased qestion Done - {rephrased_msg}")
   logger.info("Detecting ENG")
   nr=nr_detect(msg)

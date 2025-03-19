@@ -63,7 +63,7 @@ def query_callback_changlog(state: MessagesState):
     return {"messages":out}
 
 def check_changelog(msg):
-  datas=[re.search('ENG-[0-9]*', msg,re.IGNORECASE),re.search('BEMS[0-9]*',  msg,re.IGNORECASE), re.search('CSC-[a-z,A-Z,0-9]*', msg,re.IGNORECASE),re.search('PS-[0-9]*',  msg,re.IGNORECASE),re.search('RT-[0-9]*',  msg,re.IGNORECASE)]
+  datas=[re.search('ENG-[0-9]*', msg,re.IGNORECASE),re.search('BEMS[0-9]*',  msg,re.IGNORECASE), re.search('CSC[a-z,A-Z,0-9]*', msg,re.IGNORECASE),re.search('PS-[0-9]*',  msg,re.IGNORECASE),re.search('RT-[0-9]*',  msg,re.IGNORECASE)]
   for item in datas:
      if item:
         return True

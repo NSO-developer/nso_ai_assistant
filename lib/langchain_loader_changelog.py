@@ -146,7 +146,7 @@ def process_doc(content,ver,url,contents_url):
     case_nrs=case_nrs.replace("]","")
 
     bems=re.search('BEMS[0-9]*',  case_nrs,re.IGNORECASE)
-    cdets_nr = re.search('CSC-[a-z,A-Z,0-9]*', case_nrs,re.IGNORECASE)
+    cdets_nr = re.search('CSC[a-z,A-Z,0-9]*', case_nrs,re.IGNORECASE)
     ps_nr = re.search('PS-[0-9]*',  case_nrs,re.IGNORECASE)
     rt_nr = re.search('RT-[0-9]*',  case_nrs,re.IGNORECASE)
     out={"BEMs Number":bems,"CDETs Number":cdets_nr,"PS Number":ps_nr,"RT Number":rt_nr}
@@ -154,7 +154,7 @@ def process_doc(content,ver,url,contents_url):
 
     for key,value in out.items():
         if value:
-            metas[key]=value.group()
+            metas[key]=value.group().replace(",","")
 
     document = Document(
     page_content=content.text,
