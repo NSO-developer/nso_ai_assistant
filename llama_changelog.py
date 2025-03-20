@@ -43,9 +43,12 @@ def rephrase(msg,search_result,deploy="remote"):
     {
       "role": "system",
       "content": f'''
-      NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
-      Your answer will be used to search inside NSO Release Note.
-      You will rephrase your question based on the following context
+      You will rephrase the question from user prompt by using context below. The context provide the mechanisem and technical detail that you need to rephrase the question.
+      Your rephrased question need to focus on these specific mechanisem,code name, function name or configuration name provided in the context. Do not further expend the question to other relevent information(for example the RFC).
+      If there are any code name, function name or configuration name mentioned in the context, your rephrased question need to focus on in these code name, function name or configuration name. 
+      NSO in the question is in term of Cisco Network Services Ochestrator. Do not expend any abbreviation. 
+      Your answer will be used to search inside NSO Release Note and check if specific mechanisem, code name, function name or configuration name fix exist.
+      The question you rephrased need to be straight forward .
 
       <contexts>
       {search_result}
@@ -123,6 +126,8 @@ def context_extract(context,deploy="remote"):
       "role": "system",
       "content": f'''
       NSO in the question is in term of Cisco Network Services Ochestrator. Only use NSO to answer your question. Do not use full name of NSO. 
+      If there are any mechanisem, code name or function name inside the original context, make sure extract them in full name without further elaboration.  
+      Your goal is to find out the key mechanisem,code name or function name that context provided.
       '''
     }
   ]
@@ -202,12 +207,13 @@ def handler(msgs):
 
   general=""" 
       You are a Cisco NSO Expert that answer Cisco NSO related question based on NSO Change Note. The relevent Change Note will be provided as the contexts. 
-      You must strictly follow the context and answer the question. 
-      In the end of your answer, mention whatever source that you used to construct your answer. 
+      If relevent mechanism, code name, function name or configuration name in the user question has been mentioned in the context, than the conext is defined as useful. In this case, you need to follow the context and answer the question. 
+      If relevent mechanism, code name, function name or configuration name in the user question has not been mentioned in the context, ignore the context and tell user that You did not find relevent Change Note. At the same time suggest user to provide more information on the specific mechanisem. 
+      In the end of your answer, mention whatever source that you used to construct your answer with NSO Verison Number. 
       Construct your answer in Markdown format.
   """
   logger.info("Extract from changelog vdb")
-  search_result=query_vdb(rephrased_msg,nr,top_result=2)
+  search_result=query_vdb(rephrased_msg,nr,top_result=1)
   logger.info(f"Extract from changelog vdb Done - {search_result}")
 
   systemPrompt = f'''
