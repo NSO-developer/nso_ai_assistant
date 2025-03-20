@@ -213,7 +213,7 @@ def handler(msgs):
       Construct your answer in Markdown format.
   """
   logger.info("Extract from changelog vdb")
-  search_result=query_vdb(rephrased_msg,nr,top_result=1)
+  search_result=query_vdb(rephrased_msg,nr,top_result=4)
   logger.info(f"Extract from changelog vdb Done - {search_result}")
 
   systemPrompt = f'''
