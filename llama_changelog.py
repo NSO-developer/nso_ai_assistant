@@ -44,10 +44,10 @@ def rephrase(msg,search_result,deploy="remote"):
       "role": "system",
       "content": f'''
       You will rephrase the question from user prompt by using context below. The context provide the mechanisem and technical detail that you need to rephrase the question.
-      Your rephrased question need to focus on these specific mechanisem,code name or function name  provided in the context. Do not further expend the question to other relevent information(for example the RFC).
-      If there are any code name or  function name mentioned in the context, your rephrased question need to focus on in these code name or function name. 
+      Your rephrased question need to focus on these specific code name, function name or configuration name provided in the context. Do not further expend the question to other relevent information(for example the RFC).
+      If there are any code name, function name or configuration name mentioned in the context, your rephrased question need to focus on in these code name, function name or configuration name. 
       NSO in the question is in term of Cisco Network Services Ochestrator. Do not expend any abbreviation. 
-      Your answer will be used to search inside NSO Release Note and check if specific mechanisem, code name, function name or configuration name fix exist.
+      Your answer will be used to search inside NSO Release Note and check if specific code name, function name or configuration name fix exist.
       The question you rephrased need to be straight forward .
 
       <contexts>
