@@ -129,26 +129,25 @@ def main(msg,cec_in="",name=""):
     else:
        bypass = False
     if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower() or bypass:
-      if purpose == 1:
+      if purpose == 3:
+        logger.info("define as changelog related")
+        if config["com_int"] == "webex":
+          send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 1 to 2 min.", cec=cec_in)
+        start = time.time()
+        messages =  [HumanMessage(content=msg)]
+        response=app_changelog.invoke(
+            {"messages": messages},
+            config={"configurable": {"thread_id": cec_in}},
+
+        )
+        end = time.time()
+      else:
         if config["com_int"] == "webex":
             send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in)    
         logger.info("define as general question")
         start = time.time()
         messages =  [HumanMessage(content=msg)]
         response=app.invoke(
-            {"messages": messages},
-            config={"configurable": {"thread_id": cec_in}},
-
-        )
-        end = time.time()
-      elif purpose == 3:
-        logger.info("define as changelog related")
-        if config["com_int"] == "webex":
-          send(f"Hi {name}. Let me try to go through the changenote.....This might takes around 1 to 2 min.", cec=cec_in)
-
-        start = time.time()
-        messages =  [HumanMessage(content=msg)]
-        response=app_changelog.invoke(
             {"messages": messages},
             config={"configurable": {"thread_id": cec_in}},
 

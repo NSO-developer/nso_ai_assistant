@@ -303,9 +303,9 @@ def vdb_init(check):
     for ver in nso_vers:
         logger.info("Loading NSO "+str(ver)+" documentation")
         if ver == "latest":
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/"]
+            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/","https://cisco-tailf.gitbook.io/nso-docs/neds"]
         else:
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
+            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/","https://cisco-tailf.gitbook.io/nso-docs/neds"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         if check:

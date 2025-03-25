@@ -17,7 +17,6 @@ At the same time, this repository also have User-based Agent Memory. It can answ
 To compare our design with more general approach like AnythingLLM, we also provide testcode to interact with AnythingLLM as RAG and retrive answer. We call it alternative approach in this readme guide.
 
 ## Architecture
-
 ![Arch](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png)
 
 Design is inspired by the following post
@@ -26,6 +25,7 @@ Design is inspired by the following post
 
 ## Available Feature and Limitations
 * Answer NSO related question that has been specified in the Gitbook
+* Answer queston about specific fix or from specific BEMs support case number from Changelog Explorer
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
 * Only support Webex direct message for now. Group message is not supported.
 * Unique support hybrid context mode that use the context between Gitbook Search and Langchain Chroma RAG to provide the best result.

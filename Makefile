@@ -18,3 +18,8 @@ build_model_server:
 	curl -fsSL https://ollama.com/install.sh | sh
 	ollama pull llama3.1:8b
 	systemctl start ollama
+
+py_env:
+	python3.11 -m venv ai_assistant
+	chmod 755 ai_assistant/bin/activate
+#	ai_assistant/bin/activate && pip install --upgrade pip && pip install -r requirments.txt
