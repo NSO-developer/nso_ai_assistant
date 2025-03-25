@@ -275,6 +275,17 @@ ANYTHINGLLM_API_TOKEN obtained from AnythingLLM Config - Tools - Developer API -
 sh start_ollama.sh --cli
 ```
 
+## API Access
+Webex server mode also have a api access feature that can use to bridge this agent to other tools. API must be protected via token by specify the token in "api_token" at config.json.  To access the API use the following request
+```
+payload='{"data":{"id":"'$3'","personEmail":"'$2'","query":"'$4'"}}'
+curl --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $5" \
+  --request POST \
+  --data  "$payload"\
+  $1
+```
+while $1 is the url of the webex server, $2 is the email address of the user, $3 is the message id, $4 is the question you want to ask the AI and eventually $5 is the access token that specified in "api_token" at config.json.
 
 ## Feedback Feature
 
