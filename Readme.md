@@ -32,7 +32,7 @@ Design is inspired by the following post
 
 ## Sample Interaction
 ### Webex
-<img src="https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png" alt="Webex Bot" width="500" height="800">
+![Webex Bot](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png)
 
 ### CLI
 
