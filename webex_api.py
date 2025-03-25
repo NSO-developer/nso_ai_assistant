@@ -12,23 +12,25 @@ def load_config():
   return data
 
 def send(message,cec):
-    get_rooms_url = "https://webexapis.com/v1/messages/"
-    requests.packages.urllib3.disable_warnings() #removing SSL warnings
-    message_data=message
-    message_markdown_data=message_data
-    payload={
-                  "toPersonEmail": str(cec)+"@cisco.com",
-                  "text": message_data,
-                  "markdown":message_markdown_data
-          }
+    if cec != "api":
+        get_rooms_url = "https://webexapis.com/v1/messages/"
+        requests.packages.urllib3.disable_warnings() #removing SSL warnings
+        message_data=message
+        message_markdown_data=message_data
+        payload={
+                    "toPersonEmail": str(cec)+"@cisco.com",
+                    "text": message_data,
+                    "markdown":message_markdown_data
+            }
 
-    header = {"Authorization": "Bearer %s" % token, "content-type": "application/json"}
-    api_response = requests.post(get_rooms_url, json=payload, headers=header, verify=False) 
-    if api_response.status_code != 200:
-        print ('Message Rply Error !')
-        print ("[ERROR] Response Code: "+str(api_response.status_code))
-        print ("[ERROR] Response Json: "+str(api_response.text))
-
+        header = {"Authorization": "Bearer %s" % token, "content-type": "application/json"}
+        api_response = requests.post(get_rooms_url, json=payload, headers=header, verify=False) 
+        if api_response.status_code != 200:
+            print ('Message Rply Error !')
+            print ("[ERROR] Response Code: "+str(api_response.status_code))
+            print ("[ERROR] Response Json: "+str(api_response.text))
+    else:
+        return message
 def send_attach(message,attach,cec):
     get_rooms_url = "https://webexapis.com/v1/messages/"
     requests.packages.urllib3.disable_warnings() #removing SSL warnings

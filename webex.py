@@ -34,6 +34,52 @@ logger = logging.getLogger('webex')
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
+@app.route("/api",methods=['POST'])
+def api():
+    # Get the json data
+    auth=str(request.authorization).split(" ")[1]
+    if auth not in config["api_token"]:
+        return "ACCESS DENINED"
+    json = request.json
+    print(request.authorization)
+
+    print (request.url, file = sys.stdout)
+    id = json["data"]["id"]
+    email = json["data"]["personEmail"]
+    cec=email.split("@")[0]
+    email_previx=email.split("@")[1]
+    if (email_previx != "webex.bot") and (email_previx == config["bot_email_prefix"]) :
+        header = {"Authorization": "Bearer %s" % token}
+        message = json["data"]["query"]
+        logger.info("Receive request! - "+str(message)+" from user - "+str(cec))
+        if (email_previx != config["bot_email_prefix"]):            
+            logger.info("Access Denied from user - "+str(email))
+            return "ACCESS DENINED"
+        name_url = " https://webexapis.com/v1/people?email=" + cec+"%40"+email_previx
+        api_name_response = requests.get(name_url, headers=header, verify=False)
+        response_name_json = api_name_response.json()
+        name = response_name_json["items"][0]["firstName"]
+        if (name):
+            if mode == "nso":
+                logger.info("NSO Specific Pipeline")
+                llama_response=main(message,cec_in="api",name=name)
+                logger.info("Sending request! - "+str(llama_response))
+                return {"data":{"id":id,"personEmail":email,"response":llama_response}}
+                #creat_issue(message,llama_response,cec)
+            elif  mode == "general":
+                logger.info("General Pipeline from AnythingLLM")
+                llama_response=ollama_main(message,cec_in="api")
+                logger.info("Sending request! - "+str(llama_response))
+                return {"data":{"id":id,"personEmail":email,"response":llama_response}}
+                #creat_issue(message,llama_response,cec)
+            else:
+                print("Internal Error")
+                logger.error("invalid mode")
+                return "Internal Error"
+    else:
+        return "IGNORE"
+
+
 
 @app.route("/",methods=['POST'])    # all request for localhost:4444/  will reach this method
 def recv():
@@ -69,8 +115,7 @@ def recv():
         name = response_name_json["items"][0]["firstName"]
 
 
-        request_body = "test"
-        if (request_body):
+        if (name):
             if mode == "nso":
                 logger.info("NSO Specific Pipeline")
                 llama_response=main(message,cec_in=cec,name=name)

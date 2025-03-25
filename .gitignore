@@ -16,3 +16,4 @@ nohup.out
 stats.sh
 stats.py
 ai_assistant/*
+query.sh
