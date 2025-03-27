@@ -128,7 +128,7 @@ def main(msg,cec_in="",name=""):
        bypass =True
     else:
        bypass = False
-    if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower() or bypass:
+    if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower() or "does"  in msg.lower() or bypass:
       if purpose == 3:
         logger.info("define as changelog related")
         if config["com_int"] == "webex":
@@ -167,9 +167,19 @@ def main(msg,cec_in="",name=""):
         )
         end = time.time()
       else:
-        response=""
-        send("ERROR: Undefined Purpose", cec=cec_in)
+        if config["com_int"] == "webex":
+            send(f"Hi {name}. I am having a hard time to define the purpose of your question. I assume this is something to that can be found in the Gitbook. Let me check and get back to you..... This might takes around 45 sec to 1 min.",cec=cec_in)    
         logger.error("Undefined Purpose - "+str(purpose))
+        logger.info("LAST RESOLUTION!!! define as general question")
+        start = time.time()
+        messages =  [HumanMessage(content=msg)]
+        response=app.invoke(
+            {"messages": messages},
+            config={"configurable": {"thread_id": cec_in}},
+
+        )
+        end = time.time()
+        
 
     comment="What%20do%20you%20want%20to%20see%20and%20how%20should%20it%20be%20improved."
     #print("msg:" + msg)
