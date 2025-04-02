@@ -19,6 +19,7 @@ To compare our design with more general approach like AnythingLLM, we also provi
 ## Architecture
 ![Arch](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png)
 
+
 Design is inspired by the following post
 [1]“How to build an AI search engine (OSS Perplexity Clone),” Together, 2025. https://docs.together.ai/docs/ai-search-engine (accessed Jan. 28, 2025).
 
