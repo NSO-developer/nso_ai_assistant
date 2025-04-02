@@ -17,7 +17,7 @@ At the same time, this repository also have User-based Agent Memory. It can answ
 To compare our design with more general approach like AnythingLLM, we also provide testcode to interact with AnythingLLM as RAG and retrive answer. We call it alternative approach in this readme guide.
 
 ## Architecture
-![Arch](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_design.png)
+![Arch](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/nso_ai_arch.png)
 
 
 Design is inspired by the following post
