@@ -10,7 +10,6 @@
     "get_content_type":"hybrid",
     "database_check_time":"01:00",
     "doc_vers":["latest"],
-    "changenote": false,
     "api_token":[""],
     "init_thread_limit":3
 }
