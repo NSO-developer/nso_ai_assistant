@@ -6,6 +6,8 @@ from uuid import uuid4
 import hashlib
 import json
 import datetime;
+import traceback
+
 try: 
     from BeautifulSoup import SoupStrainer
 except ImportError:
@@ -277,11 +279,13 @@ def query_vdb(query,nr,mode="similarity",top_result=2):
 async def add_vdb_byurls(urls):
     #documents=loader(urls)
     logger.info("Spliting Document Start")
+    
     splitted_doc=await splitter(urls)
     logger.info(f"Spliting Document Start - Done ENG:{splitted_doc}")
 
     logger.info("Adding Spliited Doc to the VDB")
     add_vector_databases(splitted_doc)
+    logger.info("Adding Spliited Doc to the VDB -Done")
 
 
 def vdb_init(check):
@@ -295,9 +299,14 @@ def vdb_init(check):
     scraped_urls=get_all_urls(url_nav)
     scraped_urls=list(set(scraped_urls))
     if check:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        #loop = asyncio.get_event_loop()
         try:
             loop.run_until_complete(add_vdb_byurls(scraped_urls))
+
+        except Exception as e:
+            print("Exception raised")
+            print(traceback.format_exc())
         finally:
             loop.run_until_complete(loop.shutdown_asyncgens())
             loop.close()
@@ -349,8 +358,9 @@ def schedule_update():
 
 
 if __name__=="__main__":
-    asyncio.run(add_vdb_byurls("https://developer.cisco.com/docs/nso/changelog-explorer/?from=5.5.6&to=5.5.7"))
-    #vdb_init(True)
+    #asyncio.run(add_vdb_byurls("https://developer.cisco.com/docs/nso/changelog-explorer/?from=5.5.6&to=5.5.7"))
+    vdb_init(True)
+    #asyncio.run(add_vdb_byurls(scraped_urls))
     #vdb_init(True)
     #query_vdb("which NSO version SSHJ version 0.39.0 has been introduced?",mode="similarity",top_result=2)
     #query="which NSO version does CDB Persistent introduced?"
