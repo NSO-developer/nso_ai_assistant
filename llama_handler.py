@@ -128,7 +128,7 @@ def main(msg,cec_in="",name=""):
        bypass =True
     else:
        bypass = False
-    if "how"  in msg.lower() or "what"  in msg.lower() or "when"  in msg.lower() or "why"  in msg.lower() or bypass:
+    if  "what"  in msg.lower() or "when"  in msg.lower() or bypass:
       if purpose == 3:
         logger.info("define as changelog related")
         if config["com_int"] == "webex":
