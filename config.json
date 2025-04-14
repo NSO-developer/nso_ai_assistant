@@ -3,7 +3,7 @@
     "model_name":"meta-llama/llama-3.3-70B-Instruct-Turbo-Free",
     "embedding_model":"sentence-transformers/all-mpnet-base-v2",
     "together_mode":"api",
-    "com_int":"webex",
+    "com_int":"cli",
     "bot_email_prefix":"cisco.com",
     "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
     "doc_keepalive": 14,
@@ -11,5 +11,6 @@
     "database_check_time":"01:00",
     "doc_vers":["latest"],
     "changenote": false,
-    "api_token":[""]
+    "api_token":[""],
+    "init_thread_limit":3
 }

@@ -95,12 +95,10 @@ async def splitter(urls):
     contents={}
     pool={}
     tasks=[]
-    semaphore = asyncio.Semaphore(10)
-
+    semaphore = asyncio.Semaphore(config['init_thread_limit'])
     for url in urls:
         if url not in database.keys():
-            tasks.append(splitter_document(url,semaphore))
-
+            tasks.append(asyncio.ensure_future(splitter_document(url,semaphore)))
     responses = await asyncio.gather(*tasks)
     
     for(soup,ver,url) in responses:
@@ -297,7 +295,13 @@ def vdb_init(check):
     scraped_urls=get_all_urls(url_nav)
     scraped_urls=list(set(scraped_urls))
     if check:
-        asyncio.run(add_vdb_byurls(scraped_urls))
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(add_vdb_byurls(scraped_urls))
+        finally:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
+        #asyncio.run(add_vdb_byurls(scraped_urls))
 
         
 
