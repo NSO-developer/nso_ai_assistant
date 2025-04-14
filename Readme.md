@@ -26,7 +26,7 @@ Design is inspired by the following post
 
 ## Available Feature and Limitations
 * Answer NSO related question that has been specified in the Gitbook
-* Answer queston about specific fix or from specific BEMs support case number from Changelog Explorer
+* Answer queston about specific fix or from specific BEMs support case number, CDETs number, RT Number or SR number from Changelog Explorer
 * Code Generation is not ideal at moment. It can generate, but it has quite a lot of mistake. Especially Java API perform much worse than Python API.
 * Only support Webex direct message for now. Group message is not supported.
 * Unique support hybrid context mode that use the context between Gitbook Search and Langchain Chroma RAG to provide the best result.
@@ -130,7 +130,9 @@ You can choose the deployment method between online deployment with together.ai 
     "doc_keepalive": 14,
     "get_content_type":"langchain_rag",
     "database_check_time":"01:00",
-    "doc_vers":["6.1","latest"]
+    "doc_vers":["6.1","latest"],
+    "api_token":[""],
+    "init_thread_limit":3
 
 }
 ```

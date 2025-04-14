@@ -1,10 +1,11 @@
 from lib.gitbook_scraper import search
 import logging
 import time
+
+
 from llama_code_generator import handler as code_gen_handler
 from llama_changelog import handler as changelog_handler,changelog_init
 from llama_gitbook import handler as gitbook_handler
-
 from llama_code_generator import info_prep as code_gen_cache
 from llama_api import *
 import json
@@ -12,6 +13,9 @@ from webex_api import send
 import urllib.parse
 from lib.langchain_loader import *
 from lib.loader import *
+
+
+
 
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
@@ -124,11 +128,13 @@ def define_purpose(msg,deploy="remote"):
 
 def main(msg,cec_in="",name=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
-    if purpose ==3:
+    if purpose ==3 and "how "  not in msg.lower() and "why "  not in msg.lower():
        bypass =True
     else:
        bypass = False
-    if  "what"  in msg.lower() or "when"  in msg.lower() or bypass:
+
+       
+    if  "what "  in msg.lower() or ("when " in msg.lower() and "_when" not in msg.lower() ) or bypass:
       if purpose == 3:
         logger.info("define as changelog related")
         if config["com_int"] == "webex":

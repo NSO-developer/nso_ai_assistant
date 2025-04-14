@@ -2,6 +2,7 @@ import os
 import logging
 import requests
 import threading
+from time import sleep
 from uuid import uuid4
 import hashlib
 import json
@@ -15,6 +16,8 @@ from bs4 import BeautifulSoup
 from multiprocessing import Manager
 import time
 import schedule
+from concurrent.futures import ThreadPoolExecutor,as_completed
+
 
 os.environ['USER_AGENT'] = 'myagent'
 
@@ -86,31 +89,26 @@ def save_database(url):
 
 def splitter(urls):
     contents={}
-    pool={}
-    for url in urls:
-        #url=re.sub('/nso-6.[1-9]*/', '/', url)
-        nso_ver = re.search('/nso-6.[1-9]*/', url)
-        if nso_ver:
-            nso_ver=nso_ver.group(0)
-            nso_ver=nso_ver.replace("/","").replace("nso-","")
-        else:
-            nso_ver="latest"
-        logger.info("catagorize doc for - "+str(nso_ver))
+    #pool={}
+    with ThreadPoolExecutor(config['init_thread_limit']) as executor:
+        for url in urls:
+            #url=re.sub('/nso-6.[1-9]*/', '/', url)
+            nso_ver = re.search('/nso-6.[1-9]*/', url)
+            if nso_ver:
+                nso_ver=nso_ver.group(0)
+                nso_ver=nso_ver.replace("/","").replace("nso-","")
+            else:
+                nso_ver="latest"
+            logger.info("catagorize doc for - "+str(nso_ver))
 
-        current=datetime.datetime.now()
-        if url in database.keys():
-            database_obj=datetime.datetime.strptime(database[url], '%m/%d/%Y %H:%M:%S')
-            diff=(current-database_obj).days
-        else:
-            diff=config["doc_keepalive"]+1
-
-        if diff >config["doc_keepalive"]:
-            pool[url]=threading.Thread(target=splitter_document, args=(url,contents,nso_ver))
-
-    for thread in pool.values():
-        thread.start()
-    for thread in pool.values():
-        thread.join()
+            current=datetime.datetime.now()
+            if url in database.keys():
+                database_obj=datetime.datetime.strptime(database[url], '%m/%d/%Y %H:%M:%S')
+                diff=(current-database_obj).days
+            else:
+                diff=config["doc_keepalive"]+1
+            if diff >config["doc_keepalive"]:
+                executor.submit(splitter_document, url,contents,nso_ver)
     return contents
 
 def web_splitter(url):
@@ -303,9 +301,9 @@ def vdb_init(check):
     for ver in nso_vers:
         logger.info("Loading NSO "+str(ver)+" documentation")
         if ver == "latest":
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/","https://cisco-tailf.gitbook.io/nso-docs/neds"]
+            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/"]
         else:
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/","https://cisco-tailf.gitbook.io/nso-docs/neds"]
+            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         if check:
@@ -316,12 +314,8 @@ def vdb_init(check):
 def get_all_urls(url_nav):
     urls = []
     pool = {}
-    for url in url_nav:
-        pool[url]=threading.Thread(target=get_all_url, args=(url,urls))
-    for thread in pool.values():
-        thread.start()
-    for thread in pool.values():
-        thread.join()
+    with ThreadPoolExecutor(config['init_thread_limit']) as executor:
+        future_pool={executor.submit(get_all_url, url,urls): url for url in url_nav}
     return urls
 
 def get_all_url(url,urls):
