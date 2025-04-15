@@ -31,6 +31,7 @@ Design is inspired by the following post
 * Only support Webex direct message for now. Group message is not supported.
 * Unique support hybrid context mode that use the context between Gitbook Search and Langchain Chroma RAG to provide the best result.
 
+
 ## Sample Interaction
 ### Webex
 ![Webex Bot](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png)
@@ -214,6 +215,32 @@ sh start.sh --webex
 * Find your bot on Webex and interact with it
 
 
+## API Access
+Webex server mode also have a api access feature that can use to bridge this agent to other tools. API must be protected via token by specify the token in "api_token" at config.json.  To access the API use the following request
+```
+payload='{"data":{"id":"'$3'","personEmail":"'$2'","query":"'$4'"}}'
+curl --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $5" \
+  --request POST \
+  --data  "$payload"\
+  $1
+```
+while $1 is the url of the webex server, $2 is the email address of the user, $3 is the message id, $4 is the question you want to ask the AI and eventually $5 is the access token that specified in "api_token" at config.json.
+
+## Feedback Feature
+
+The repository also have the feature of collecting feedback in Github as an issues. By default this is set towards the NSO-developer repository - "https://github.com/NSO-developer/nso_ai_assistant". When creating the issue, the issue description will be pre-populated with the following content. This can make the issue open easier. 
+```
+**Question**
+{Question Asked}
+
+**Answer from AI**
+{Anser Got}
+
+**Expected Answer(Optional)**
+What do you want to see and how should it be improved.
+
+```
 
 ## Alternative Approach
 This chapter shows how to use more general approach with RAG(AnythingLLM) + Ollama. You can test the result of this approach with the one we created as a AI Agent.  
@@ -276,33 +303,6 @@ ANYTHINGLLM_API_TOKEN obtained from AnythingLLM Config - Tools - Developer API -
 * Start the bot with the following command
 ```
 sh start_ollama.sh --cli
-```
-
-## API Access
-Webex server mode also have a api access feature that can use to bridge this agent to other tools. API must be protected via token by specify the token in "api_token" at config.json.  To access the API use the following request
-```
-payload='{"data":{"id":"'$3'","personEmail":"'$2'","query":"'$4'"}}'
-curl --header "Content-Type: application/json" \
-  --header "Authorization: Bearer $5" \
-  --request POST \
-  --data  "$payload"\
-  $1
-```
-while $1 is the url of the webex server, $2 is the email address of the user, $3 is the message id, $4 is the question you want to ask the AI and eventually $5 is the access token that specified in "api_token" at config.json.
-
-## Feedback Feature
-
-The repository also have the feature of collecting feedback in Github as an issues. By default this is set towards the NSO-developer repository - "https://github.com/NSO-developer/nso_ai_assistant". When creating the issue, the issue description will be pre-populated with the following content. This can make the issue open easier. 
-```
-**Question**
-{Question Asked}
-
-**Answer from AI**
-{Anser Got}
-
-**Expected Answer(Optional)**
-What do you want to see and how should it be improved.
-
 ```
 
 
