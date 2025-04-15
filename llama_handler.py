@@ -172,7 +172,8 @@ def main(msg,cec_in="",name=""):
         end = time.time()
       else:
         if config["com_int"] == "webex":
-            send(f"Hi {name}. I am having a hard time to define the purpose of your question. I assume this is something to that can be found in the Gitbook. Let me check and get back to you..... This might takes around 45 sec to 1 min.",cec=cec_in)    
+            send(f"Hi {name}. Let me think.....This might takes around 45 sec to 1 min.",cec=cec_in) 
+            #send(f"Hi {name}. I am having a hard time to define the purpose of your question. I assume this is something to that can be found in the Gitbook. Let me check and get back to you..... This might takes around 45 sec to 1 min.",cec=cec_in)    
         logger.error("Undefined Purpose - "+str(purpose))
         logger.info("LAST RESOLUTION!!! define as general question")
         start = time.time()
