@@ -19,3 +19,4 @@ stats.sh
 stats.py
 ai_assistant/*
 query.sh
+.DS_Store
