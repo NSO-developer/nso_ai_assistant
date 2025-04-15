@@ -16,10 +16,8 @@ from bs4 import BeautifulSoup
 from multiprocessing import Manager
 import time
 import schedule
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor,as_completed
 
-from lib.langchain_loader_resource import query_vdb as query_vdb_resource
-from lib.langchain_loader_resource import resource_init as resource_init
 
 os.environ['USER_AGENT'] = 'myagent'
 
@@ -30,10 +28,10 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents import Document
 
-handler = logging.FileHandler("logs/langchain_gitbook.log")        
+handler = logging.FileHandler("logs/langchain_resource.log")        
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
-logger = logging.getLogger('langchain_gitbook')
+logger = logging.getLogger('langchain_resource')
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
@@ -59,7 +57,7 @@ else:
 
 
 
-persist_directory = 'resources/vectordb'
+persist_directory = 'resources/vectordb_resource'
 init=False
 if not os.path.exists(persist_directory+"/chroma.sqlite3"):
     init=True
@@ -94,15 +92,7 @@ def splitter(urls):
     #pool={}
     with ThreadPoolExecutor(config['init_thread_limit']) as executor:
         for url in urls:
-            #url=re.sub('/nso-6.[1-9]*/', '/', url)
-            nso_ver = re.search('/nso-6.[1-9]*/', url)
-            if nso_ver:
-                nso_ver=nso_ver.group(0)
-                nso_ver=nso_ver.replace("/","").replace("nso-","")
-            else:
-                nso_ver="latest"
-            logger.info("catagorize doc for - "+str(nso_ver))
-
+            #logger.info("catagorize doc for - "+str(nso_ver))
             current=datetime.datetime.now()
             if url in database.keys():
                 database_obj=datetime.datetime.strptime(database[url], '%m/%d/%Y %H:%M:%S')
@@ -110,7 +100,7 @@ def splitter(urls):
             else:
                 diff=config["doc_keepalive"]+1
             if diff >config["doc_keepalive"]:
-                executor.submit(splitter_document, url,contents,nso_ver)
+                executor.submit(splitter_document, url,contents)
     return contents
 
 def web_splitter(url):
@@ -135,8 +125,10 @@ def web_splitter(url):
         counter+=1
     return out
 
-def splitter_document(url,contents,nso_ver):      
+def splitter_document(url,contents):      
     logger.info("Splitting: "+url)
+    code_name=url.split("/")[6]
+    #print("Splitting: "+url)
     headers_to_split_on = [
         ("h1", "Header 1"),
         ("h2", "Header 2"),
@@ -151,26 +143,23 @@ def splitter_document(url,contents,nso_ver):
         html_header_splits=web_splitter(url)
     #print(html_header_splits)
     header1=None
-    hearder_obj=None
-    header2_checker=False
+    html_header_splits.pop(0)
     for data in html_header_splits:
-        if len(data.metadata) > 0:
-            if 'Header 1' in data.metadata.keys() and 'Header 2' not in data.metadata.keys() :
-                #print("header 1 only:"+str(data)+" url: "+str(url))
-                hearder_obj=data
+        if 'Header 2' in data.metadata.keys():
+            if data.metadata['Header 2']=='Support':
+                html_header_splits.remove(data)
+            #print(data.page_content)
+        if 'Header 1' in data.metadata.keys() and 'Header 2' not in data.metadata.keys() :
                 header1=data.metadata['Header 1']
                 html_header_splits.remove(data)
-            elif 'Header 2' in data.metadata.keys() or  'Header' in data.metadata.keys():
-                header2_checker=True
-            else:
+
+    for data in html_header_splits:
+        if 'Header 1' not in data.metadata.keys():
                 data.metadata['Header 1']=header1
                 #print("header 1 and others:"+str(data))
                 #print(data)
-            data.metadata['url']=url
-            data.metadata['NSO Version']=nso_ver
-    if not header2_checker: 
-        html_header_splits.append(hearder_obj)
-    #print(html_header_splits)
+        data.metadata['url']=url
+        data.metadata['code_name']=code_name
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
     save_database(url)
@@ -221,68 +210,57 @@ def cleaning_docs(splitted_doc):
     return (ids,lst_splitted_doc)
 
 
-def query_vdb(query,mode="similarity",top_result=2):
+def query_vdb(query,mode="similarity",top_result=2,filter=""):
+    logger.info("Querying Vector DB in "+ mode+": "+ query)
+    datas={}
     out=""
-    metas={}
-
-    if "resource manager" in  query.lower() or "resource-manager" in query.lower() or "IP Address Allocator" in query.lower() or "ID Allocator" in query.lower():
-        logger.info("Resource Manager Filter Activated")
-        metas["code_name"]="resource-manager"
-    elif  "observability exporter" in  query.lower() or "observability-exporter" in  query.lower() or "observability" in  query.lower():
-        logger.info("Observability Exporter Filter Activated")
-        metas["code_name"]="observability-exporter"
-    elif "phased provisioning" in  query.lower() or "phased-provisioning" in  query.lower():
-        logger.info("Phased Provisioning Filter Activated")
-        metas["code_name"]="phased-provisioning"
-    elif "kubernetes" in  query.lower():
-        logger.info("Kubernetes Filter Activated")
-        metas["code_name"]="nso-on-kubernetes"
-
-    if "code_name" in metas.keys():
-        logger.info("Resource Tab Agent Query Mode")
-        out=query_vdb_resource(query,mode,top_result=top_result,filter=metas)
-    else:
-        logger.info("Querying Vector DB in "+ mode+": "+ query)
-        datas={}
-        if mode == "similarity":
-            logger.info("similarity_search")
+    if mode == "similarity":
+        logger.info("similarity_search")
+        if len(filter)>0:
+            results = vectordb.similarity_search(
+            query,
+            k=top_result,
+            filter=filter
+            )
+        else:
             results = vectordb.similarity_search(
             query,
             k=top_result
             )
+
+    else:
+        logger.info("max_marginal_relevance_search")
+        if len(filter)>0:
+            results=vectordb.max_marginal_relevance_search(query,k=top_result, filter=filter)
         else:
-            logger.info("max_marginal_relevance_search")
             results=vectordb.max_marginal_relevance_search(query,k=top_result)
-        #print(str(results))
-        for res in results:
-            logger.info("Result obtained from vdb: "+str(res))
-            index=""
-            for key,title in res.metadata.items():
-                index=index+title+"-"
-            index=index[:-1]
-            #print(index)
-            title_str="title: "
-            url_str="url: "
-            ver_str="NSO Version: "
-            for title,data in res.metadata.items():
-                if "Header" in title:
-                    title_str=title_str+data+" - "
-                elif "url" in title:
-                    url_str=url_str+data
-                elif "NSO Version" in title:
-                    ver_str=ver_str+data
+    #print(str(results))
+    for res in results:
+        logger.info("Result obtained from vdb: "+str(res))
+        index=""
+        for key,title in res.metadata.items():
+            index=index+title+"-"
+        index=index[:-1]
+        #print(index)
+        title_str="title: "
+        url_str="url: "
+        for title,data in res.metadata.items():
+            if "Header" in title:
+                title_str=title_str+data+" - "
+            elif "url" in title:
+                url_str=url_str+data
 
-            #print(title_str)
-            title_str= title_str[:-3]
-            source=title_str+", "+url_str+", "+ver_str
-            #print(res)
-            datas[index]="source: "+str(source)+"\nresult: "+res.page_content
-            logger.info("Result obtained from vdb - Loaded: "+str(res))
+        #print(title_str)
+        title_str= title_str[:-3]
+        source=title_str+", "+url_str
+        #print(res)
+        datas[index]="source: "+str(source)+"\nresult: "+res.page_content
+        logger.info("Result obtained from vdb - Loaded: "+str(res))
 
-            #print("source: "+res.metadata['url']+"\nresult: "+res.page_content)
-        for data in datas.values():
-            out=out+data+"\n\n"
-        logger.info("Querying Vector DB in "+ mode+": "+ query+" Done")
+        #print("source: "+res.metadata['url']+"\nresult: "+res.page_content)
+    for data in datas.values():
+        out=out+data+"\n\n"
+    logger.info("Querying Vector DB in "+ mode+": "+ query+" Done")
     return out
 
 
@@ -291,7 +269,11 @@ def query_vdb(query,mode="similarity",top_result=2):
 def add_vdb_byurls(urls):
     #documents=loader(urls)
     splitted_doc=splitter(urls)
-    #print(splitted_doc.keys())
+    # for doc in splitted_doc['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter']:
+    #     print("Metadata: "+str(doc.metadata))
+    #     print("Page Content: "+doc.page_content)
+    #     print()
+    #print(splitted_doc['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter'])
     add_vector_databases(splitted_doc)
 
 
@@ -321,15 +303,11 @@ def vdb_init(check):
     nso_vers=config["doc_vers"]
     for ver in nso_vers:
         logger.info("Loading NSO "+str(ver)+" documentation")
-        if ver == "latest":
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/"]
-        else:
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
+        url_nav=["https://cisco-tailf.gitbook.io/nso-docs/resources"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         if check:
             add_vdb_byurls(scraped_urls)
-    resource_init()
 
 #vdb_init(init)
 
@@ -341,19 +319,15 @@ def get_all_urls(url_nav):
     return urls
 
 def get_all_url(url,urls):
-    url_lst=url.split("/")
-    search_key=url_lst[-2]+"/"+url_lst[-1]
     reqs = requests.get(url)
     soup = BeautifulSoup(reqs.text, 'html.parser')
     for link in soup.find_all('a'):
         link=link.get('href')
-        if "http" not in link and search_key in link and "?" not in link and "#" not in link and "whats-new" not in link and "errata" not in link and link != "/"+search_key and "get-started" not in link:
+        if "http" not in link and  ("platform-tools" in link or  ("best-practices" in link and "network-automation-delivery-model" not in link and "scaling-and-performance-optimization" not in link)):
             urls.append("https://cisco-tailf.gitbook.io"+link)
             #print("https://cisco-tailf.gitbook.io"+link)
+    #print(urls)
     return urls
-
-
-
 
 def update_database():
     logger.info("Updating Database")
@@ -372,20 +346,32 @@ def schedule_update():
     t1.start()
 
 
-    
+def resource_init():
+      logger.info("Initializing Gitbook Resource VDB")
+      vdb_init(True)
+      logger.info("Initializing Gitbook Resource VDB......Done")
 
 
 if __name__=="__main__":
     vdb_init(True)
-
+    #manager = Manager()
+    #global database
+    #database=load_database(manager)
+    #contents={}
+    #splitter_document('https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter',contents)
+    #for doc in contents['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter']:
+    #    #print(doc)
+    #    print("Metadata: "+str(doc.metadata))
+    #    print("Page Content: "+doc.page_content)
+    #    print()
     #database={}
     #contents={}
     #nso_ver="latest"
     #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
 
 
-    #query="Which JDK version should I use for NSO 6.1?"
-    #data=vdb_init(query,top_result=2)
+    #query="How to allocate IP address?"
+    #data=query_vdb(query,top_result=2)
     #print("===========Return Data=====================")
     #print(data)
     #print("================================")

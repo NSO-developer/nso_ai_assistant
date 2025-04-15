@@ -245,6 +245,7 @@ def changelog_init():
    vdb_init(True)
    logger.info("Initializing changelog vdb......Done")
 
+
 def load_config():
   with open('config.json', 'r') as file:
       data = json.load(file)
