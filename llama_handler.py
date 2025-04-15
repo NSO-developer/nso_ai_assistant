@@ -15,8 +15,6 @@ from lib.langchain_loader import *
 from lib.loader import *
 
 
-
-
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage
@@ -211,6 +209,7 @@ if __name__=="__main__":
       logger.info("Initializing Changelog Explorer VDB")
       changelog_init()
       logger.info("Initializing Changelog Explorer VDB......Done")
+
     logger.info("Deploy mode: "+ config['deploy_mode'])
     schedule_update()
     print("Initializing.......Done")

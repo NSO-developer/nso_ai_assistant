@@ -12,6 +12,8 @@ resources/chat_mem/*
 !resources/chat_mem/.gitkeep
 resources/changelog_db/*
 !resources/changelog_db/.gitkeep
+resources/vectordb_resource/*
+!resources/vectordb_resource/.gitkeep
 nohup.out
 stats.sh
 stats.py
