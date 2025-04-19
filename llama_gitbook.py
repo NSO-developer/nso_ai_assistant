@@ -6,7 +6,7 @@ from llama_api import *
 import json
 from webex_api import send
 from lib.langchain_loader import *
-
+#from lib.summarizer import summarize_get
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 import traceback
@@ -99,13 +99,34 @@ def keyword_scrapper(msg,mode,deploy="remote"):
   return (data_gitbook,data_langchain)
 
 
+def generate_sum_context(context,final_result,sum_url=[]):
+    url_re=re.search(r"url: http.*, ", context,re.IGNORECASE)
+    if not url_re:
+      #logger.info("Mismatch context - url: http.*, : "+ str(context))
+      url_re=re.search(r"url: http.*\n", context,re.IGNORECASE)
+    if not url_re:
+      #logger.info("Mismatch context - url: http.*\n"+ str(context))
+      url_re=re.search(r"source: http.*\n", context,re.IGNORECASE)
+      url=url_re.group().split("source:")[1].strip()
+    else:
+      url=url_re.group().split("url:")[1].strip()
+    if "," in url:
+       url=url.replace(",","")
+    if url not in sum_url:
+      logger.info("URL obtain from Context for Summary: "+url)
+      final_result.append(generate_summarize(url))
+      sum_url.append(url)
+    else:
+       logger.info("Summarize has already been provided for URL: "+url)
+    return final_result
 
 
 
 def process_val_result(search_result,val_results):
   q_set=[]
-  split_context=search_result.split("\n\n")
+  split_context=search_result.split("\n\nsource:")
   final_result=[]
+  false_switch=False
   i=0
   for result in val_results:
       if (result["relevant_DEF"] == 'False' or result["relevant_DEF"] == False) and "section5#ncs.conf" not in result["irrelvant_context_url"] :
@@ -118,12 +139,53 @@ def process_val_result(search_result,val_results):
                   logger.info(f"Trying to get extra query - {query}")
                   q_set.append(query.strip().lower())
                   final_result.append(query_vdb(query,mode="max_marginal_relevance",top_result=1))
+                  false_switch=True
+        #final_result.append(summarize_get(result["irrelvant_context_url"]))
       else:
-          final_result.append(split_context[i])
+          if "source:" not in split_context[i]:
+             final_result.append("source: "+split_context[i])
+          else:   
+            final_result.append(split_context[i])
       i+=1
+      
+  if config["get_content_type"] =="langchain_rag" and config["summarizer"]["enable"]:
+     false_switch=True
+
+  triggered=False
+  i=0
+  if false_switch and config["summarizer"]["enable"]:
+    sum_url=[]
+    for result in val_results:
+      if "source: " not in split_context[i]:
+          data="source: "+split_context[i]
+      else:
+          data=split_context[i]
+      if config["get_content_type"] =="langchain_rag":
+        logger.info("langchain_rag enhanced mode - summary support")
+        final_result=generate_sum_context(data,final_result,sum_url)
+        triggered=True
+      elif (result["relevant_DEF"] == 'True' or result["relevant_DEF"] == True):
+          logger.info(split_context)
+          logger.info("max_marginal_relevance trigger substitution. Creating Summary from corrected source as support context")
+          final_result=generate_sum_context(data,final_result,sum_url)
+          triggered=True
+      i+=1
+
+    if not triggered:
+        i=0
+        for data in final_result:
+            logger.info("All False Result. Creating Summary from max_marginal_relevance substitution as support context")
+            if "source: " not in split_context[i]:
+               con="source: "+split_context[i]
+            else:
+              con=split_context[i]
+            final_result=generate_sum_context(con,final_result,sum_url)
+        i+=1
+
   #final_result.append(tavily(query,["https://datatracker.ietf.org/"]))
   out=""
   for data in final_result:
+     logger.info(data)
      out=out + data + "\n\n"
   return out
              

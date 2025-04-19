@@ -14,6 +14,8 @@ resources/changelog_db/*
 !resources/changelog_db/.gitkeep
 resources/vectordb_resource/*
 !resources/vectordb_resource/.gitkeep
+resources/index_db/*
+!resources/index_db/.gitkeep
 nohup.out
 stats.sh
 stats.py

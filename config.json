@@ -11,5 +11,15 @@
     "database_check_time":"01:00",
     "doc_vers":["latest"],
     "api_token":[""],
-    "init_thread_limit":3
+    "init_thread_limit":3,
+    "summarizer":{
+        "enable": false,
+        "init_on_boot":false
+    },
+    "llm_rate_limit_summarizer":{
+        "requests_per_second": 0.2,
+        "check_every_n_seconds":10,
+        "max_bucket_size":10,
+        "retry_timeout":61
+    }
 }

@@ -18,8 +18,12 @@ import time
 import schedule
 from concurrent.futures import ThreadPoolExecutor
 
-from lib.langchain_loader_resource import query_vdb as query_vdb_resource
-from lib.langchain_loader_resource import resource_init as resource_init
+from .langchain_loader_resource import query_vdb as query_vdb_resource
+from .langchain_loader_resource import resource_init as resource_init
+from .langchain_loader_resource import get_db as get_db_resource
+
+from .summarizer import summarize_add,summarize_get
+
 
 os.environ['USER_AGENT'] = 'myagent'
 
@@ -101,7 +105,7 @@ def splitter(urls):
                 nso_ver=nso_ver.replace("/","").replace("nso-","")
             else:
                 nso_ver="latest"
-            logger.info("catagorize doc for - "+str(nso_ver))
+            logger.info("catagorize doc for "+str(url)+" - "+str(nso_ver))
 
             current=datetime.datetime.now()
             if url in database.keys():
@@ -173,7 +177,6 @@ def splitter_document(url,contents,nso_ver):
     #print(html_header_splits)
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
-    save_database(url)
     #database[url]=datetime.datetime.now()
     return contents
 
@@ -182,18 +185,15 @@ def add_vector_databases(splitted_docs):
         add_vector_database(key,content)
 
 def add_vector_database(key,splitted_doc):
-    #print(splitted_doc)
-    #logger.info("before splitted_doc: "+str(splitted_doc))
-    #print("Before: ")
-    #print(splitted_doc)
     (ids,splitted_doc)=cleaning_docs(splitted_doc)
     logger.info("Adding: "+key+" to Chroma Vector Database")
-    #uuids = [str(uuid4()) for _ in range(len(splitted_doc))]
-    #print("After: ")
-    #print(splitted_doc)
     if len(splitted_doc) > 0:
+        if config["summarizer"]["enable"] and config["summarizer"]["init_on_boot"]:
+            logger.info("Summarizing: "+key+" to SQL Database")
+            summarize_add(key,splitted_doc)
         vectordb.add_documents(documents=splitted_doc, ids=ids)
         logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
+        save_database(key)
     else:
         logger.error("Adding: "+key+" to Chroma Vector Database - ERROR(doc is empty). Hash: "+ str(ids))
     return ids
@@ -220,6 +220,34 @@ def cleaning_docs(splitted_doc):
 
     return (ids,lst_splitted_doc)
 
+
+
+def get_db(url):
+    meta={}
+    resource_switch=False
+    if "resource-manager" in url.lower() :
+        logger.info("Resource Manager Filter Activated")
+        meta["code_name"]="resource-manager"
+        resource_switch=True
+    elif  "observability-exporter" in  url.lower():
+        logger.info("Observability Exporter Filter Activated")
+        meta["code_name"]="observability-exporter"
+        resource_switch=True
+    elif "phased-provisioning" in  url.lower():
+        logger.info("Phased Provisioning Filter Activated")
+        meta["code_name"]="phased-provisioning"
+        resource_switch=True
+    elif "kubernetes" in  url.lower():
+        logger.info("Kubernetes Filter Activated")
+        meta["code_name"]="nso-on-kubernetes"
+        resource_switch=True
+    if resource_switch:
+        result=get_db_resource(meta)
+    else:
+        meta["url"]=url
+        result=vectordb.get(where=meta)
+    return result
+        
 
 def query_vdb(query,mode="similarity",top_result=2):
     out=""
@@ -254,6 +282,7 @@ def query_vdb(query,mode="similarity",top_result=2):
             logger.info("max_marginal_relevance_search")
             results=vectordb.max_marginal_relevance_search(query,k=top_result)
         #print(str(results))
+        title_str_sum=""
         for res in results:
             logger.info("Result obtained from vdb: "+str(res))
             index=""
@@ -267,6 +296,9 @@ def query_vdb(query,mode="similarity",top_result=2):
             for title,data in res.metadata.items():
                 if "Header" in title:
                     title_str=title_str+data+" - "
+                    logger.info(title)
+                    if "1" in title:
+                        title_str_sum=title_str+data+" Summary"
                 elif "url" in title:
                     url_str=url_str+data
                 elif "NSO Version" in title:
@@ -291,6 +323,7 @@ def query_vdb(query,mode="similarity",top_result=2):
 def add_vdb_byurls(urls):
     #documents=loader(urls)
     splitted_doc=splitter(urls)
+    logger.info("Actual Processed URL: "+str(len(splitted_doc)))
     #print(splitted_doc.keys())
     add_vector_databases(splitted_doc)
 
@@ -327,6 +360,7 @@ def vdb_init(check):
             url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
+        logger.info("Total URL: "+str(len(scraped_urls)))
         if check:
             add_vdb_byurls(scraped_urls)
     resource_init()
@@ -371,6 +405,38 @@ def schedule_update():
     t1=threading.Thread(target=check_schedule, args=(1,))
     t1.start()
 
+def generate_summarize(url):
+    if "," in url:
+        url=url.replace(",","")
+    url=url.strip()
+    sum=summarize_get(url)
+    if not sum or "final_summary" not in sum["summary"]:
+        logger.info("no cached summary found for "+url+". regenerate")
+        docs=get_db(url)
+        splitted_doc=[]
+        for meta,doc in zip(docs['metadatas'], docs['documents']):
+            document = Document(
+                page_content=doc,
+                metadata=meta
+                )
+            splitted_doc.append(document)
+        sum=summarize_add(url,splitted_doc)
+        if sum:
+            logger.info(sum)
+            if "final_summary" in sum:
+                sum=sum["final_summary"]
+            else:
+                sum=""
+            sum="source:  url: "+url+sum
+        else:
+            sum=""
+        #print(sum)
+    else:
+        logger.info("cached summary found for "+url+". extracted")
+        #logger.info(sum)
+        sum=sum["summary"]["final_summary"]
+        sum="source:  url: "+url+sum
+    return sum
 
     
 
@@ -378,10 +444,20 @@ def schedule_update():
 if __name__=="__main__":
     vdb_init(True)
 
+    #datas=generate_summarize("https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/system-install")
+    #print(datas)
+    # for key,data in datas.items():
+    #     print()
+    #     print("==========================================")
+    #     print(key)
+    #     print(data)
     #database={}
     #contents={}
     #nso_ver="latest"
-    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
+    #manager = Manager()
+    #global database
+    #database={}
+    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/system-install"])
 
 
     #query="Which JDK version should I use for NSO 6.1?"

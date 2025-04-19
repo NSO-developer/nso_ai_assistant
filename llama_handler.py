@@ -126,8 +126,6 @@ def define_purpose(msg,deploy="remote"):
 
 def main(msg,cec_in="",name=""):
     purpose=int(define_purpose(msg,config['deploy_mode']))
-
-    
     if purpose ==3 and "how "  not in msg.lower() and "why "  not in msg.lower():
        bypass =True
     else:
