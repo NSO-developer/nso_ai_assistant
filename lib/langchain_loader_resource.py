@@ -17,6 +17,7 @@ from multiprocessing import Manager
 import time
 import schedule
 from concurrent.futures import ThreadPoolExecutor,as_completed
+from .summarizer import summarize_add
 
 
 os.environ['USER_AGENT'] = 'myagent'
@@ -162,7 +163,7 @@ def splitter_document(url,contents):
         data.metadata['code_name']=code_name
     contents[url]=html_header_splits
     logger.info("Splitting: "+url+" Done. Length: "+str(len(html_header_splits)))
-    save_database(url)
+    
     #database[url]=datetime.datetime.now()
     return contents
 
@@ -171,18 +172,15 @@ def add_vector_databases(splitted_docs):
         add_vector_database(key,content)
 
 def add_vector_database(key,splitted_doc):
-    #print(splitted_doc)
-    #logger.info("before splitted_doc: "+str(splitted_doc))
-    #print("Before: ")
-    #print(splitted_doc)
     (ids,splitted_doc)=cleaning_docs(splitted_doc)
     logger.info("Adding: "+key+" to Chroma Vector Database")
-    #uuids = [str(uuid4()) for _ in range(len(splitted_doc))]
-    #print("After: ")
-    #print(splitted_doc)
     if len(splitted_doc) > 0:
-        vectordb.add_documents(documents=splitted_doc, ids=ids)
+        if config["summarizer"]["enable"] and config["summarizer"]["init_on_boot"]:
+            logger.info("Summarizing: "+key+" to SQL Database")
+            summarize_add(key,splitted_doc)
+        vectordb.add_documents(documents=splitted_doc, ids=ids)    
         logger.info("Adding: "+key+" to Chroma Vector Database - Done. Hash: "+ str(ids))
+        save_database(key)
     else:
         logger.error("Adding: "+key+" to Chroma Vector Database - ERROR(doc is empty). Hash: "+ str(ids))
     return ids
@@ -208,6 +206,11 @@ def cleaning_docs(splitted_doc):
                     #logger.info("doc: "+str(doc))
 
     return (ids,lst_splitted_doc)
+
+
+def get_db(metas):
+    result=vectordb.get(where=metas)
+    return result
 
 
 def query_vdb(query,mode="similarity",top_result=2,filter=""):
@@ -247,6 +250,8 @@ def query_vdb(query,mode="similarity",top_result=2,filter=""):
         for title,data in res.metadata.items():
             if "Header" in title:
                 title_str=title_str+data+" - "
+                if "1" in title:
+                    title_str_sum=title_str+data+" Summary"
             elif "url" in title:
                 url_str=url_str+data
 
@@ -269,11 +274,7 @@ def query_vdb(query,mode="similarity",top_result=2,filter=""):
 def add_vdb_byurls(urls):
     #documents=loader(urls)
     splitted_doc=splitter(urls)
-    # for doc in splitted_doc['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter']:
-    #     print("Metadata: "+str(doc.metadata))
-    #     print("Page Content: "+doc.page_content)
-    #     print()
-    #print(splitted_doc['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter'])
+    logger.info("Actual Processed URL: "+str(len(splitted_doc)))
     add_vector_databases(splitted_doc)
 
 
@@ -306,6 +307,7 @@ def vdb_init(check):
         url_nav=["https://cisco-tailf.gitbook.io/nso-docs/resources"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
+        logger.info("Total URL: "+str(len(scraped_urls)))
         if check:
             add_vdb_byurls(scraped_urls)
 
@@ -350,7 +352,6 @@ def resource_init():
       logger.info("Initializing Gitbook Resource VDB")
       vdb_init(True)
       logger.info("Initializing Gitbook Resource VDB......Done")
-
 
 if __name__=="__main__":
     vdb_init(True)

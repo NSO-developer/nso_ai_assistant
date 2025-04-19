@@ -10,7 +10,7 @@ For NSO Gitbook Agent, we explore 3 different approach to achieve as high accura
     * Data must be cleaned and easy to understand by the LLM
 * Hybrid - Hybrid between Gitbook Search and Langchain RAG by taking the top 1 result from both search and use it together to construct query towards AI module. In this case, we benifit from the pros and cons on both module and trying to create more neutral result. At the same time, Gitbook Search failed to match, Langchain RAG will try to take over. In this case, we can make up to the non-match issue of the Gitbook Search.
 
-For NSO Changelog Agent, only Langchain RAG mode is allowed since no complicated method is required.  
+For NSO Changelog Agent, only Langchain RAG mode is allowed since no complicated method is required. 
 
 At the same time, this repository also have User-based Agent Memory. It can answer the question based on previous interaction with the AI. The memory is constructed with a conversational RAG. By query the RAG and extract top 2 relevent conversation previously.
 
@@ -214,6 +214,26 @@ sh start.sh --webex
 
 * Find your bot on Webex and interact with it
 
+## Enhance Context Validation Mode (Expiermental Feature)
+The Agent also feature enhance Context Validation Mode in Hybrid and Langchain RAG mode. When the feature is enabled, the Hybrid mode will use the summary of the full text as a extra factor to correct the incorrect context. For example, if context 1 is incorrect and context 2 is correct. Conext 1 will be swap to better source while a Summary is generated for Context 2 to provide better higher level overview based on the correct context.  The generated summary will be cached inside a SQL database. User can also choose if they want to pre-populate the summary during the Agent Booting Phase instead always generate on-demand.  
+While using Langchain RAG mode, the summary will always be provided as part of the context.
+This feature can be enalbed by switching the summarizer/enable to true in config.json. At the same time, decide if the summary should be pre-populated on the boot by setting summarizer/init_on_boot to true. If this is set to false, the summary will generate during the qurey phase. During the summary generation, one might want to limit the rate by setting the parameter under llm_rate_limit_summarizer. Some user might using a AI API that have rate limit. This will make the summary generation failed if the rate limit has been repeatly hit. Therefore limit the rate into a reasonable value is a good idea.  
+Sample configuration can be found as below.
+```
+    "summarizer":{
+        "enable": true,
+        "init_on_boot":true
+    },
+    "llm_rate_limit_summarizer":{
+        "requests_per_second": 0.2,
+        "check_every_n_seconds":10,
+        "max_bucket_size":10,
+        "retry_timeout":61
+    }
+```
+
+**BE AWARE!**  
+Generating summary is extremly time consuming on boot or the query phase depends on the configuration of summarizer/init_on_boot. Turn this feature on can highly increase the accuracy of the outcome. However, if your AI API have very tough rate limit or your token cost a lot. We suggest you turn this feature off. However, after initial database population, the time consumption is negligible.
 
 ## API Access
 Webex server mode also have a api access feature that can use to bridge this agent to other tools. API must be protected via token by specify the token in "api_token" at config.json.  To access the API use the following request
@@ -235,12 +255,15 @@ The repository also have the feature of collecting feedback in Github as an issu
 {Question Asked}
 
 **Answer from AI**
-{Anser Got}
+{Answer Got}
 
 **Expected Answer(Optional)**
 What do you want to see and how should it be improved.
 
 ```
+
+## Pre-populated Database
+If you are having a hard time to populate the Summary Database or the RAG Database due to resource limitation, we have a pre-compiled one in populated_db folder. This database is compiled at 2025-04-18 and it might get outdated by the time goes since NSO doumentation is updated from time to time. To use this Pre-populated Database, simply untar the tarball inside the populated_db and replace the resource folder.
 
 ## Alternative Approach
 This chapter shows how to use more general approach with RAG(AnythingLLM) + Ollama. You can test the result of this approach with the one we created as a AI Agent.  
