@@ -3,8 +3,8 @@ This project intend to build a Multi-Agent AI Assistant that can answer NSO rela
 
 
 For NSO Gitbook Agent, we explore 3 different approach to achieve as high accuracy as possible
-* Gitbook Search - The first approach rely on the Gitbook Search of the NSO Gitbook Guide and build a RAG and Vector Database above it. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. 
-* Langchain RAG - While the second way is with Langchain to construct a tailed RAG that have the following goal
+* Gitbook Search - The first approach rely on the Gitbook Search of the NSO Gitbook Guide as search engine. Gitbook does have its own AI feature, however it is not tailed for NSO usage. In this case, the answer that came back can not be used as support purpose. Do not recommend to use this mode by itself as it use large memory with low accuracy.
+* Langchain RAG - The second way is with Langchain to construct a tailed RAG that have the following goal
     * Vector Datastore need to tailed to NSO Gitbook Guide with one chapter per chunk
     * When query, enough support is provided to retrive from the Vector Datastore
     * Data must be cleaned and easy to understand by the LLM
