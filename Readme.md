@@ -82,6 +82,7 @@ Average execution time: 21.693789958953857
 I did not do well? Leave me a [Feedback]() on Github 
 
 ```
+Video Demo: https://youtu.be/ZpOkrgI_0E4
 ## Pros and Cons  
 ![Pros and Cons](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/pros_cons.png)
 
