@@ -37,6 +37,7 @@ Design is inspired by the following post
 ![Webex Bot](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/webex.png)
 
 ### CLI
+![Demo](https://github.com/NSO-developer/nso_ai_assistant/blob/main/others/demo.gif)
 
 ```
 User>
