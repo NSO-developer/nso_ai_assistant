@@ -46,7 +46,7 @@ model_name=config['model_name']
 def tavily(msg,extra_domain=[]): 
   response = tavily_client.search(
         query=msg,
-        include_domains=["https://cisco-tailf.gitbook.io/nso-docs","https://www.cisco.com/"]+extra_domain,
+        include_domains=["https://nso-docs.cisco.com/","https://www.cisco.com/"]+extra_domain,
         include_answer="basic",
         max_results=2
     )

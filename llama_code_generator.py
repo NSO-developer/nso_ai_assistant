@@ -155,7 +155,7 @@ def service_doc(code_language):
   if code_language.lower() =="python":
     nso_service_api_doc=gitbook_query(code_language+" Packages",top_result=1)
   elif code_language.lower() == "java":
-     nso_service_api_doc=gitbook_query("Service and Action Callbacks",top_result=1,url_override=[("https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/core-concepts/api-overview/java-api-overview#d5e3716","#")]) + gitbook_query("Developing our First Service Application",top_result=1,url_override=[("https://cisco-tailf.gitbook.io/nso-docs/guides/development/advanced-development/developing-packages#d5e5392","#")])
+     nso_service_api_doc=gitbook_query("Service and Action Callbacks",top_result=1,url_override=[("https://nso-docs.cisco.com/guides/nso-6.3/development/core-concepts/api-overview/java-api-overview#d5e3716","#")]) + gitbook_query("Developing our First Service Application",top_result=1,url_override=[("https://nso-docs.cisco.com/guides/development/advanced-development/developing-packages#d5e5392","#")])
   else:
       code_language=None
       logger.error("Error: Unsupported programming language")

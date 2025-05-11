@@ -269,7 +269,7 @@ def query_vdb(query,mode="similarity",top_result=2,filter=""):
     return out
 
 
-#https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
+#https://nso-docs.cisco.com/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
 
 def add_vdb_byurls(urls):
     #documents=loader(urls)
@@ -300,11 +300,11 @@ def vdb_init(check):
     manager = Manager()
     global database
     database=load_database(manager)
-#    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides"]
+#    url_nav=["https://nso-docs.cisco.com/guides"]
     nso_vers=config["doc_vers"]
     for ver in nso_vers:
         logger.info("Loading NSO "+str(ver)+" documentation")
-        url_nav=["https://cisco-tailf.gitbook.io/nso-docs/resources"]
+        url_nav=["https://nso-docs.cisco.com/resources"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         logger.info("Total URL: "+str(len(scraped_urls)))
@@ -359,8 +359,8 @@ if __name__=="__main__":
     #global database
     #database=load_database(manager)
     #contents={}
-    #splitter_document('https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter',contents)
-    #for doc in contents['https://cisco-tailf.gitbook.io/nso-docs/resources/platform-tools/observability-exporter']:
+    #splitter_document('https://nso-docs.cisco.com/resources/platform-tools/observability-exporter',contents)
+    #for doc in contents['https://nso-docs.cisco.com/resources/platform-tools/observability-exporter']:
     #    #print(doc)
     #    print("Metadata: "+str(doc.metadata))
     #    print("Page Content: "+doc.page_content)
@@ -368,7 +368,7 @@ if __name__=="__main__":
     #database={}
     #contents={}
     #nso_ver="latest"
-    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
+    #add_vdb_byurls(["https://nso-docs.cisco.com/guides/administration/installation-and-deployment/post-install-actions/uninstall-system-install"])
 
 
     #query="How to allocate IP address?"

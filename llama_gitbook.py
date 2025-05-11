@@ -107,17 +107,21 @@ def generate_sum_context(context,final_result,sum_url=[]):
     if not url_re:
       #logger.info("Mismatch context - url: http.*\n"+ str(context))
       url_re=re.search(r"source: http.*\n", context,re.IGNORECASE)
-      url=url_re.group().split("source:")[1].strip()
+      if url_re:
+        url=url_re.group().split("source:")[1].strip()
+      else:
+         url=None
     else:
       url=url_re.group().split("url:")[1].strip()
-    if "," in url:
-       url=url.replace(",","")
-    if url not in sum_url:
-      logger.info("URL obtain from Context for Summary: "+url)
-      final_result.append(generate_summarize(url))
-      sum_url.append(url)
-    else:
-       logger.info("Summarize has already been provided for URL: "+url)
+    if url:
+      if "," in url:
+        url=url.replace(",","")
+      if url not in sum_url:
+        logger.info("URL obtain from Context for Summary: "+url)
+        final_result.append(generate_summarize(url))
+        sum_url.append(url)
+      else:
+        logger.info("Summarize has already been provided for URL: "+url)
     return final_result
 
 

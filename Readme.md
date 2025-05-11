@@ -1,5 +1,5 @@
 # NSO AI Assistant
-This project intend to build a Multi-Agent AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://cisco-tailf.gitbook.io/nso-docs/ and NSO Changelog Explorer - https://developer.cisco.com/docs/nso/ned-changelog-explorer/. 
+This project intend to build a Multi-Agent AI Assistant that can answer NSO related question based on the NSO Gitbook Guide - https://nso-docs.cisco.com/ and NSO Changelog Explorer - https://developer.cisco.com/docs/nso/ned-changelog-explorer/. 
 
 
 For NSO Gitbook Agent, we explore 3 different approach to achieve as high accuracy as possible
@@ -74,7 +74,7 @@ In terms of performance, the CDB keeps a configurable amount of configuration da
 
 Sources:
 
-* https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
+* https://nso-docs.cisco.com/guides/nso-6.3/development/introduction-to-automation/cdb-and-yang
 * Title: CDB and YANG - Key Features of the CDB (no URL provided)
       
 Average execution time: 21.693789958953857
@@ -305,7 +305,7 @@ mintplexlabs/anythingllm
         * Choose Data Connectors in Data Upload 
         * Choose Bult Link Scraper
         * Provide the following Parameter:
-            * Gitbook URL - https://cisco-tailf.gitbook.io/nso-docs
+            * Gitbook URL - https://nso-docs.cisco.com/
             * Depth - 3
             * Max Links - 100
 * Add the newly added data into the Workspace

@@ -318,7 +318,7 @@ def query_vdb(query,mode="similarity",top_result=2):
     return out
 
 
-#https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
+#https://nso-docs.cisco.com/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
 
 def add_vdb_byurls(urls):
     #documents=loader(urls)
@@ -350,14 +350,14 @@ def vdb_init(check):
     manager = Manager()
     global database
     database=load_database(manager)
-#    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides"]
+#    url_nav=["https://nso-docs.cisco.com/guides"]
     nso_vers=config["doc_vers"]
     for ver in nso_vers:
         logger.info("Loading NSO "+str(ver)+" documentation")
         if ver == "latest":
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs","https://cisco-tailf.gitbook.io/nso-docs/guides/","https://cisco-tailf.gitbook.io/nso-docs/developers/"]
+            url_nav=["https://nso-docs.cisco.com/","https://nso-docs.cisco.com/guides/","https://nso-docs.cisco.com/developers/"]
         else:
-            url_nav=["https://cisco-tailf.gitbook.io/nso-docs",f"https://cisco-tailf.gitbook.io/nso-docs/guides/nso-{ver}/",f"https://cisco-tailf.gitbook.io/nso-docs/developers/nso-{ver}/"]
+            url_nav=["https://nso-docs.cisco.com/",f"https://nso-docs.cisco.com/guides/nso-{ver}/",f"https://nso-docs.cisco.com/developers/nso-{ver}/"]
         scraped_urls=get_all_urls(url_nav)
         scraped_urls=list(set(scraped_urls))
         logger.info("Total URL: "+str(len(scraped_urls)))
@@ -444,7 +444,7 @@ def generate_summarize(url):
 if __name__=="__main__":
     vdb_init(True)
 
-    #datas=generate_summarize("https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/system-install")
+    #datas=generate_summarize("https://nso-docs.cisco.com/guides/administration/installation-and-deployment/system-install")
     #print(datas)
     # for key,data in datas.items():
     #     print()
@@ -457,7 +457,7 @@ if __name__=="__main__":
     #manager = Manager()
     #global database
     #database={}
-    #add_vdb_byurls(["https://cisco-tailf.gitbook.io/nso-docs/guides/administration/installation-and-deployment/system-install"])
+    #add_vdb_byurls(["https://nso-docs.cisco.com/guides/administration/installation-and-deployment/system-install"])
 
 
     #query="Which JDK version should I use for NSO 6.1?"

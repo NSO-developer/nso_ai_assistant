@@ -274,7 +274,7 @@ def query_vdb(query,nr,mode="similarity",top_result=2):
     return out
 
 
-#https://cisco-tailf.gitbook.io/nso-docs/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
+#https://nso-docs.cisco.com/guides/nso-6.3/operation-and-usage/operations/nso-device-manager#user_guide.devicemanager.initialize-device
 
 async def add_vdb_byurls(urls):
     #documents=loader(urls)
@@ -292,7 +292,7 @@ def vdb_init(check):
     manager = Manager()
     global database
     database=load_database(manager)
-#    url_nav=["https://cisco-tailf.gitbook.io/nso-docs/guides"]
+#    url_nav=["https://nso-docs.cisco.com/guides"]
     logger.info("Loading NSO Changelog Explorer")
     url_nav="https://developer.cisco.com/docs/nso/changelog-explorer/"
     logger.info("Extracting all Changelog Exploer URL from Various NSO version")

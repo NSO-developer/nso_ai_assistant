@@ -40,8 +40,8 @@ config=load_config()
 def get_html(query):
     #print(query)
     query_str=query.replace(" ", "+")
-    url="https://cisco-tailf.gitbook.io/nso-docs/guides?q="+query_str+"&global=true"
-    #print(url)""
+    url="https://nso-docs.cisco.com/guides?q="+query_str+"&global=true"
+    print(url)
     service = Service(executable_path='/usr/lib/chromium-browser/chromedriver')
     try:
         driver = webdriver.Chrome(service=service,options=chrome_options)
@@ -236,7 +236,7 @@ def get_content(url_list_org,dataset,top_result=2):
             if ("ncs.conf" or "ncs-config" in data)  and not skip:
                 #print(data)
                 if not cache:
-                    r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
+                    r=requests.get("https://nso-docs.cisco.com/guides/resources/index/section5#ncs.conf")
                     if r.status_code <200 and r.status_code >300:
                         raise requests.exceptions.HTTPError
                     else:
@@ -277,11 +277,11 @@ def gitbook_query(query,top_result,url_override=[]):
     if "upgrade" in query and "nso" not in query:
             query="nso "+query
     elif ("northbound" in query or "ncs.conf" in  query):
-        r=requests.get("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf")
+        r=requests.get("https://nso-docs.cisco.com/guides/resources/index/section5#ncs.conf")
         if r.status_code <200 and r.status_code >300:
             raise requests.exceptions.HTTPError
         else:
-            cache=r.content  
+            cache=r.content
         conf_ph=query.replace("northbound","")   
         conf_ph=conf_ph.replace("ncs.conf","")   
         conf_ph=conf_ph.replace("config","")  
@@ -366,7 +366,7 @@ def get_conf_context(query,cache,dataset_conf,first,iterate_search=""):
     if query !="/api":
         #print(first)
         #print("Search for: "+query)
-        parse_content("https://cisco-tailf.gitbook.io/nso-docs/guides/resources/index/section5#ncs.conf","#",dataset_conf,query=query,cache=cache,first=first)
+        parse_content("https://nso-docs.cisco.com/guides/resources/index/section5#ncs.conf","#",dataset_conf,query=query,cache=cache,first=first)
         return dataset_conf   
     else:
         return ""
