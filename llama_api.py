@@ -2,6 +2,9 @@ import json
 from webex_api import send,webhook_reg
 from tavily import TavilyClient
 import os
+from together.error import InvalidRequestError
+from lib.summarizer import summarize_batch_ext
+
 
 tavily_client = TavilyClient(api_key=os.environ['TAVILY_API_KEY'])
 
@@ -76,20 +79,48 @@ def requests_llama32(msg):
   return response.text
 
 def llama32(msg, deploy="remote"):
+  try:
+    stream=llama32_chat(msg, deploy=deploy)
+  except InvalidRequestError:
+    contents=[]
+    history=msg[:-2]
+    if len(history)/2 > 2*2:
+       history=history[-4:]
+    current=msg[-2:]
+    counter=0
+    for content in history:
+      #print(content)
+      if content['role'] == 'assistant':
+        contents[counter-1]=contents[counter-1]+"AI Replied: "+content['content']
+      elif content['role'] == 'user':
+        contents.append("User Asked: "+content['content'])
+        counter+=1
+    sum_hist=summarize_batch_ext(contents)
+    new_msg=[]
+    for content in current:
+      if content['role'] == 'system':
+        content['content']=content['content']+"Here are the chat history from previous discussion:\n\n      <chat_history>\n"+   sum_hist   +"\n      </chat_history>\n"
+      new_msg.append(content)
+    #print(new_msg)
+    stream=llama32_chat(new_msg, deploy=deploy)
+    #print(get_data(stream, deploy="remote"))
+  return stream
+
+def llama32_chat(msg, deploy="remote"):
   #print(msg)
   if deploy == "remote":
     if together_mode == "api":
-      stream = client.chat.completions.create(
-        model=f'{model_name}',
-        #llama-3.3-70B-Instruct-Turbo-Free
-        messages=msg,
-        stream=True,
-        temperature=0.6
-      )
+        stream = client.chat.completions.create(
+          model=f'{model_name}',
+          #llama-3.3-70B-Instruct-Turbo-Free
+          messages=msg,
+          stream=True,
+          temperature=0.6
+        )
     else:
-      stream=requests_llama32(msg)
+        stream=requests_llama32(msg)
   else:
-    stream=ollama32(msg,model_name)
+      stream=ollama32(msg,model_name)      
   return stream
 
 

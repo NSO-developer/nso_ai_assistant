@@ -41,7 +41,7 @@ def get_html(query):
     #print(query)
     query_str=query.replace(" ", "+")
     url="https://nso-docs.cisco.com/guides?q="+query_str+"&global=true"
-    print(url)
+    #print(url)
     service = Service(executable_path='/usr/lib/chromium-browser/chromedriver')
     try:
         driver = webdriver.Chrome(service=service,options=chrome_options)

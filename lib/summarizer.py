@@ -286,7 +286,34 @@ def black_list_check(url):
         return False
     else:
         return True
-       
+
+def summarize_ext(content):
+    split_docs=[]
+    document = Document(
+    page_content=content,
+    metadata={}
+    )
+    split_docs.append(document)
+    data=summarize(split_docs)
+    return data['final_summary']
+
+
+def summarize_batch_ext(contents):
+    split_docs=[]
+    for content in contents:
+        document = Document(
+        page_content=content,
+        metadata={}
+        )
+        split_docs.append(document)
+    data=summarize(split_docs)
+    return data['final_summary']
+
+def summarize(split_docs):
+        app = graph.compile()
+        logger.info("summary start")
+        data=invoke_summarizer(app, split_docs)
+        return data
 
 def summarize_add(url,split_docs):
     #print(split_docs)
@@ -295,9 +322,7 @@ def summarize_add(url,split_docs):
         try:
             conn = sqlite3.connect('resources/index_db/index.db')
             logger.info("Opened database successfully")
-            app = graph.compile()
-            logger.info("summary start")
-            data=invoke_summarizer(app, split_docs)
+            data= summarize(split_docs)
             sql_add(url,data)
             sql_close()
             return data
