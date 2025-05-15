@@ -6,15 +6,15 @@
     "com_int":"cli",
     "bot_email_prefix":"cisco.com",
     "github_repo_url": "https://github.com/NSO-developer/nso_ai_assistant",
-    "doc_keepalive": 14,
+    "doc_keepalive": 9999,
     "get_content_type":"hybrid",
     "database_check_time":"01:00",
     "doc_vers":["latest"],
     "api_token":[""],
     "init_thread_limit":3,
     "summarizer":{
-        "enable": false,
-        "init_on_boot":false
+        "enable": true,
+        "init_on_boot":true
     },
     "llm_rate_limit_summarizer":{
         "requests_per_second": 0.2,

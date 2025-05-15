@@ -98,8 +98,11 @@ def splitter(urls):
             if url in database.keys():
                 database_obj=datetime.datetime.strptime(database[url], '%m/%d/%Y %H:%M:%S')
                 diff=(current-database_obj).days
-                if diff >config["doc_keepalive"]:
+                logger.info("Url: "+str(url)+" Last day to update: "+str(diff)+" ago.")                
+                if diff >int(config["doc_keepalive"]):
                     executor.submit(splitter_document, url,contents)
+            else:
+                executor.submit(splitter_document, url,contents)
     return contents
 
 def web_splitter(url):
