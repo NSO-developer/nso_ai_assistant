@@ -22,3 +22,4 @@ stats.py
 ai_assistant/*
 query.sh
 .DS_Store
+resources_backup/*
